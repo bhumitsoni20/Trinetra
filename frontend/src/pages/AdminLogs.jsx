@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Shield, Monitor, Users, FileText, LogOut, AlertTriangle, Clock,
+  Monitor, Users, FileText, LogOut, AlertTriangle, Clock,
   Filter, Image, Menu, X
 } from "lucide-react";
 import { fetchLogs } from "../services/api";
 import useProctoringSocket from "../hooks/useProctoringSocket";
+import Logo from "../assets/TRINETRA.png";
 
 export default function AdminLogs({ user, onLogout }) {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export default function AdminLogs({ user, onLogout }) {
     if (event?.includes("Face Not")) return "border-amber-400/30 bg-amber-500/8";
     if (event?.includes("Tab Switch")) return "border-purple-400/30 bg-purple-500/8";
     if (event?.includes("Movement")) return "border-orange-400/30 bg-orange-500/8";
-    return "border-slate-700/40 bg-slate-800/30";
+    return "border-slate-200 bg-slate-50";
   };
 
   const getEventTextColor = (event) => {
@@ -59,7 +60,7 @@ export default function AdminLogs({ user, onLogout }) {
     if (event?.includes("Face Not")) return "text-amber-400";
     if (event?.includes("Tab Switch")) return "text-purple-400";
     if (event?.includes("Movement")) return "text-orange-400";
-    return "text-slate-400";
+    return "text-slate-600";
   };
 
   const formatDateTime = (ts) => {
@@ -92,19 +93,21 @@ export default function AdminLogs({ user, onLogout }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-slate-800/60 bg-[#0a0e1a]/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center justify-between border-b border-slate-800/60 px-5 py-5">
+      <aside className={`fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-slate-200 bg-white/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600">
-              <Shield size={18} className="text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl">
+              <img src={Logo} alt="Trinetra logo" className="h-8 w-8 object-contain" />
             </div>
             <div>
-              <p className="font-display text-sm font-bold text-white">Trinetra</p>
-              <p className="text-[10px] text-slate-500">Admin Panel</p>
+                <p className="font-display text-base font-bold text-slate-900">
+                  <span className="text-[#6B2BD9]">T</span>RI<span className="text-[#6B2BD9]">N</span>ETRA
+                </p>
+              <p className="text-xs text-slate-600">Admin Panel</p>
             </div>
           </div>
           <button
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/5 lg:hidden"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar"
           >
@@ -113,22 +116,22 @@ export default function AdminLogs({ user, onLogout }) {
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
-          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
-            <Monitor size={16} />
+          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" onClick={() => setSidebarOpen(false)}>
+            <Monitor size={18} />
             Dashboard
           </Link>
-          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
-            <Users size={16} />
+          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" onClick={() => setSidebarOpen(false)}>
+            <Users size={18} />
             User Management
           </Link>
-          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 text-sm font-medium text-white" onClick={() => setSidebarOpen(false)}>
-            <FileText size={16} className="text-cyan-400" />
+          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2.5 text-base font-medium text-slate-900" onClick={() => setSidebarOpen(false)}>
+            <FileText size={18} className="text-blue-600" />
             Alert Logs
           </Link>
         </nav>
 
-        <div className="border-t border-slate-800/60 px-3 py-4">
-          <button onClick={() => { onLogout(); navigate("/"); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition">
+        <div className="border-t border-slate-200 px-3 py-4">
+          <button onClick={() => { onLogout(); navigate("/"); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-600 hover:bg-red-500/10 hover:text-red-600 transition">
             <LogOut size={14} /> Sign Out
           </button>
         </div>
@@ -136,27 +139,27 @@ export default function AdminLogs({ user, onLogout }) {
 
       {/* Main Content */}
       <main className="relative z-10 lg:ml-[240px]">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-800/60 bg-[#0a0e1a]/90 backdrop-blur-xl px-4 py-3 sm:px-8 sm:py-4">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/90 backdrop-blur-xl px-4 py-3 sm:px-8 sm:py-4">
           <div className="flex items-center gap-3">
             <button
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700/50 text-slate-400 hover:bg-white/5 lg:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 lg:hidden"
               onClick={() => setSidebarOpen(true)}
               aria-label="Open sidebar"
             >
               <Menu size={18} />
             </button>
             <div>
-              <h1 className="font-display text-lg font-bold text-white sm:text-xl">Alert Logs</h1>
-              <p className="text-[10px] text-slate-500 sm:text-xs">Complete history of all proctoring events</p>
+              <h1 className="font-display text-xl font-bold text-slate-900 sm:text-2xl">Alert Logs</h1>
+              <p className="text-sm text-slate-600 sm:text-sm">Complete history of all proctoring events</p>
             </div>
           </div>
-          <span className="text-[10px] text-slate-500 sm:text-xs">{filtered.length} events</span>
+          <span className="text-sm text-slate-600 sm:text-sm">{filtered.length} events</span>
         </header>
 
         <div className="p-4 sm:p-6 lg:p-8">
           {/* Filters */}
           <div className="mb-4 flex flex-wrap items-center gap-1.5 animate-fadeInUp sm:mb-6 sm:gap-2">
-            <Filter size={14} className="text-slate-500" />
+            <Filter size={14} className="text-slate-600" />
             {[
               { key: "all", label: "All" },
               { key: "face", label: "Face" },
@@ -169,8 +172,8 @@ export default function AdminLogs({ user, onLogout }) {
                 onClick={() => setFilter(f.key)}
                 className={`rounded-lg px-2.5 py-1 text-[10px] font-medium transition sm:px-3 sm:py-1.5 sm:text-xs ${
                   filter === f.key
-                    ? "bg-cyan-500/15 text-cyan-300 border border-cyan-400/25"
-                    : "bg-slate-800/50 text-slate-500 border border-slate-700/40 hover:text-slate-300"
+                    ? "bg-blue-100 text-blue-700 border border-blue-200"
+                    : "bg-slate-100 text-slate-700 border border-slate-200 hover:text-slate-900"
                 }`}
               >
                 {f.label}
@@ -185,7 +188,7 @@ export default function AdminLogs({ user, onLogout }) {
                 <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
               </div>
             ) : filtered.length === 0 ? (
-              <div className="glass-card rounded-2xl p-10 text-center text-sm text-slate-500">
+              <div className="glass-card rounded-2xl p-10 text-center text-sm text-slate-600">
                 No events found for this filter.
               </div>
             ) : (
@@ -201,11 +204,11 @@ export default function AdminLogs({ user, onLogout }) {
                         <p className={`text-xs font-semibold sm:text-sm ${getEventTextColor(log.event)}`}>
                           {log.event}
                         </p>
-                        <p className="mt-0.5 text-[10px] text-slate-500 truncate sm:text-xs">
+                        <p className="mt-0.5 text-[10px] text-slate-600 truncate sm:text-xs">
                           {log.username || log.user_id || "—"}
                           {log.email ? ` · ${log.email}` : ""}
                           {" · Risk: "}
-                          <span className="text-slate-400 font-medium">{log.risk_score}</span>
+                          <span className="text-slate-700 font-medium">{log.risk_score}</span>
                         </p>
                       </div>
                     </div>
@@ -215,7 +218,7 @@ export default function AdminLogs({ user, onLogout }) {
                           href={log.image_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 rounded-lg bg-blue-500/10 px-2 py-1 text-[10px] text-blue-400 hover:bg-blue-500/20 transition sm:text-xs"
+                          className="flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-[10px] text-blue-600 hover:bg-blue-100 transition sm:text-xs"
                         >
                           <Image size={11} /> View
                         </a>
@@ -233,7 +236,7 @@ export default function AdminLogs({ user, onLogout }) {
                         <img
                           src={log.image_url}
                           alt="Suspicious activity snapshot"
-                          className="w-full rounded-lg border border-slate-700/50 transition duration-200 group-hover:opacity-80"
+                          className="w-full rounded-lg border border-slate-200 transition duration-200 group-hover:opacity-80"
                         />
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="bg-black/60 text-white text-[10px] px-2 py-1 rounded border border-white/20 backdrop-blur-sm flex items-center gap-1 sm:text-xs">
@@ -252,20 +255,20 @@ export default function AdminLogs({ user, onLogout }) {
 
       {/* Image Modal */}
       {selectedImage && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn" onClick={() => setSelectedImage(null)}>
-          <div className="relative max-w-4xl w-full bg-[#0a0e1a] rounded-2xl border border-slate-700/60 overflow-hidden shadow-2xl animate-scaleIn" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-slate-700/60 p-3 sm:p-4 bg-[#0d1224]">
-              <h3 className="font-display text-white text-sm sm:text-base font-semibold flex items-center gap-2">
-                <AlertTriangle className="text-amber-400" size={16} /> Alert Snapshot
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn" onClick={() => setSelectedImage(null)}>
+          <div className="relative max-w-4xl w-full bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xl animate-scaleIn" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-200 p-3 sm:p-4 bg-slate-50">
+              <h3 className="font-display text-slate-900 text-sm sm:text-base font-semibold flex items-center gap-2">
+                <AlertTriangle className="text-amber-600" size={16} /> Alert Snapshot
               </h3>
-              <button 
+              <button
                 onClick={() => setSelectedImage(null)}
-                className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="p-1 sm:p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
               >
                 <X size={18} />
               </button>
             </div>
-            <div className="p-2 sm:p-4 flex justify-center bg-black/40">
+            <div className="p-2 sm:p-4 flex justify-center bg-slate-50">
               <img src={selectedImage} alt="Expanded Alert" className="max-h-[60vh] sm:max-h-[75vh] w-auto object-contain rounded-lg shadow-xl" />
             </div>
           </div>

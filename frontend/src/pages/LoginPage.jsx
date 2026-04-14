@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, Mail, Lock, LogIn } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
+
+import Logo from "../assets/TRINETRA.png";
 
 import { submitAuthToken, loginUser } from "../services/api";
 import { auth, googleProvider } from "../services/firebase";
@@ -9,6 +11,7 @@ import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -102,8 +105,8 @@ export default function LoginPage({ onLogin }) {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="animate-fadeInUp mb-8 flex flex-col items-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25">
-            <Eye size={28} className="text-white" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+            <img src={Logo} alt="Trinetra logo" className="h-11 w-11 object-contain" />
           </div>
           <h1 className="font-display text-2xl font-bold text-white">Sign In</h1>
           <p className="mt-1 text-sm text-slate-400">Welcome to Trinetra Proctoring</p>
@@ -112,9 +115,11 @@ export default function LoginPage({ onLogin }) {
         <div className="glass-card animate-fadeInUp stagger-1 rounded-2xl p-8 backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl">
           <form onSubmit={handleEmailLogin} className="space-y-5">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-400">Email Address</label>
-              <div className="relative">
-                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <label className="mb-1.5 block text-xs font-medium text-slate-700">Email Address</label>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-100">
+                  <Mail size={16} className="text-slate-600" />
+                </span>
                 <input
                   type="email"
                   className="input-field pl-10 w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500/50 outline-none"
@@ -136,14 +141,22 @@ export default function LoginPage({ onLogin }) {
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
-                  type="password"
-                  className="input-field pl-10 w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500/50 outline-none"
+                  type={showPassword ? "text" : "password"}
+                  className="input-field pl-10 pr-10 w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500/50 outline-none"
                   placeholder="........"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-white"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 
@@ -192,7 +205,7 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-xs text-slate-500 hover:text-slate-400 transition">
+          <Link to="/" className="text-xs text-slate-600 hover:text-slate-900 transition">
             Back to Home
           </Link>
         </div>

@@ -151,7 +151,7 @@ export default function ExamRoom({ user, onLogout }) {
       <div className="exam-fullscreen flex items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-3 border-cyan-400/30 border-t-cyan-400" />
-          <p className="text-slate-400">Loading exam...</p>
+          <p className="text-slate-600">Loading exam...</p>
         </div>
       </div>
     );
@@ -167,11 +167,11 @@ export default function ExamRoom({ user, onLogout }) {
             <XCircle size={40} className="hidden text-red-400 sm:block" />
           </div>
           <h1 className="font-display text-2xl font-bold text-red-400 sm:text-3xl">Disqualified</h1>
-          <p className="mt-2 text-sm text-slate-400 leading-relaxed sm:mt-3 sm:text-base">
+          <p className="mt-2 text-sm text-slate-600 leading-relaxed sm:mt-3 sm:text-base">
             You have been disqualified from this exam due to repeated tab switching violations.
             This incident has been recorded.
           </p>
-          <p className="mt-2 text-xs text-slate-500 sm:text-sm">
+          <p className="mt-2 text-xs text-slate-600 sm:text-sm">
             Tab switches: {tabSwitchCount}/3
           </p>
           <button
@@ -196,8 +196,8 @@ export default function ExamRoom({ user, onLogout }) {
           </div>
           <h1 className="font-display text-2xl font-bold text-emerald-400 sm:text-3xl">Exam Submitted</h1>
           <div className="mt-4 glass-card rounded-2xl p-4 sm:mt-6 sm:p-6">
-            <div className="text-4xl font-bold text-white sm:text-5xl">{showResult.percentage}%</div>
-            <p className="mt-2 text-sm text-slate-400">
+            <div className="text-4xl font-bold text-slate-900 sm:text-5xl">{showResult.percentage}%</div>
+            <p className="mt-2 text-sm text-slate-600">
               {showResult.score} / {showResult.total} correct answers
             </p>
           </div>
@@ -231,20 +231,20 @@ export default function ExamRoom({ user, onLogout }) {
 
       {/* Warning Toast */}
       {warningMessage && (
-        <div className="warning-toast flex items-center gap-2 text-xs text-red-300 sm:gap-3 sm:text-sm">
-          <AlertTriangle size={16} className="text-red-400 shrink-0 sm:hidden" />
-          <AlertTriangle size={18} className="hidden text-red-400 shrink-0 sm:block" />
+        <div className="warning-toast flex items-center gap-2 text-xs text-red-700 sm:gap-3 sm:text-sm">
+          <AlertTriangle size={16} className="text-red-600 shrink-0 sm:hidden" />
+          <AlertTriangle size={18} className="hidden text-red-600 shrink-0 sm:block" />
           <span>{warningMessage}</span>
         </div>
       )}
 
       {/* Top Bar */}
-      <header className="flex items-center justify-between border-b border-slate-800/60 bg-[#0a0e1a]/90 backdrop-blur-xl px-3 py-2.5 sm:px-6 sm:py-3">
+      <header className="flex items-center justify-between border-b border-slate-200 bg-white/90 backdrop-blur-xl px-3 py-2.5 sm:px-6 sm:py-3">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse-dot" />
-          <span className="font-display text-xs font-semibold text-white sm:text-sm">Trinetra Exam</span>
+          <span className="font-display text-xs font-semibold text-slate-900 sm:text-sm">TRINETRA Exam</span>
           <span className="hidden text-xs text-slate-500 sm:inline">|</span>
-          <span className="hidden text-xs text-slate-400 sm:inline">{user.username}</span>
+          <span className="hidden text-xs text-slate-600 sm:inline">{user.username}</span>
         </div>
 
         <div className="flex items-center gap-3 sm:gap-5">
@@ -252,17 +252,17 @@ export default function ExamRoom({ user, onLogout }) {
           <div className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 sm:gap-2 sm:rounded-xl sm:px-4 sm:py-2 ${
             timeRemaining < 300
               ? "bg-red-500/15 border border-red-400/30"
-              : "bg-slate-800/60 border border-slate-700/60"
+              : "bg-slate-100 border border-slate-200"
           }`}>
-            <Clock size={14} className={`sm:hidden ${timeRemaining < 300 ? "text-red-400 timer-critical" : "text-cyan-400"}`} />
-            <Clock size={16} className={`hidden sm:block ${timeRemaining < 300 ? "text-red-400 timer-critical" : "text-cyan-400"}`} />
-            <span className={`font-mono text-sm font-bold sm:text-lg ${timeRemaining < 300 ? "text-red-400 timer-critical" : "text-white"}`}>
+            <Clock size={14} className={`sm:hidden ${timeRemaining < 300 ? "text-red-400 timer-critical" : "text-blue-600"}`} />
+            <Clock size={16} className={`hidden sm:block ${timeRemaining < 300 ? "text-red-400 timer-critical" : "text-blue-600"}`} />
+            <span className={`font-mono text-sm font-bold sm:text-lg ${timeRemaining < 300 ? "text-red-400 timer-critical" : "text-slate-900"}`}>
               {formatTime(timeRemaining)}
             </span>
           </div>
 
           {/* Question Counter */}
-          <span className="text-xs text-slate-400 sm:text-sm">
+          <span className="text-xs text-slate-600 sm:text-sm">
             Q {currentQ + 1}/{questions.length}
           </span>
         </div>
@@ -273,12 +273,12 @@ export default function ExamRoom({ user, onLogout }) {
         {q && (
           <div className="animate-fadeIn">
             {/* Question Number */}
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 px-2.5 py-0.5 text-[10px] text-cyan-300 sm:mb-3 sm:px-3 sm:py-1 sm:text-xs">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] text-blue-700 sm:mb-3 sm:px-3 sm:py-1 sm:text-xs">
               Question {currentQ + 1}
             </div>
 
             {/* Question Text */}
-            <h2 className="font-display text-lg font-semibold text-white leading-relaxed sm:text-xl md:text-2xl">
+            <h2 className="font-display text-lg font-semibold text-slate-900 leading-relaxed sm:text-xl md:text-2xl">
               {q.question}
             </h2>
 
@@ -292,15 +292,15 @@ export default function ExamRoom({ user, onLogout }) {
                     onClick={() => selectAnswer(q.id, idx)}
                     className={`w-full text-left rounded-xl border p-3 transition-all duration-200 sm:p-4 ${
                       isSelected
-                        ? "border-cyan-400/50 bg-cyan-500/10 text-white shadow-lg shadow-cyan-500/10"
-                        : "border-slate-700/60 bg-slate-900/40 text-slate-300 hover:border-slate-600 hover:bg-slate-800/50"
+                        ? "border-blue-300 bg-blue-50 text-slate-900 shadow-lg shadow-blue-200/60"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                     }`}
                   >
                     <div className="flex items-center gap-2.5 sm:gap-3">
                       <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-semibold sm:h-8 sm:w-8 sm:text-sm ${
                         isSelected
-                          ? "bg-cyan-500 text-white"
-                          : "bg-slate-800 text-slate-400"
+                          ? "bg-blue-600 text-white"
+                          : "bg-slate-200 text-slate-700"
                       }`}>
                         {String.fromCharCode(65 + idx)}
                       </div>
@@ -333,10 +333,10 @@ export default function ExamRoom({ user, onLogout }) {
                 onClick={() => setCurrentQ(i)}
                 className={`h-2 w-2 rounded-full transition-all sm:h-2.5 sm:w-2.5 ${
                   i === currentQ
-                    ? "bg-cyan-400 scale-125"
+                    ? "bg-blue-600 scale-125"
                     : answers[questions[i]?.id] !== undefined
                     ? "bg-emerald-500/60"
-                    : "bg-slate-700"
+                    : "bg-slate-300"
                 }`}
               />
             ))}
@@ -366,7 +366,7 @@ export default function ExamRoom({ user, onLogout }) {
 
         {/* Question Grid */}
         <div className="mt-6 glass-card-static rounded-xl p-3 sm:mt-10 sm:rounded-2xl sm:p-5">
-          <p className="mb-2 text-[10px] font-medium text-slate-400 uppercase tracking-wider sm:mb-3 sm:text-xs">Question Navigator</p>
+          <p className="mb-2 text-[10px] font-medium text-slate-600 uppercase tracking-wider sm:mb-3 sm:text-xs">Question Navigator</p>
           <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-10 sm:gap-2">
             {questions.map((q, i) => (
               <button
@@ -374,25 +374,25 @@ export default function ExamRoom({ user, onLogout }) {
                 onClick={() => setCurrentQ(i)}
                 className={`rounded-lg py-1.5 text-[10px] font-semibold transition-all sm:py-2 sm:text-xs ${
                   i === currentQ
-                    ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-200/60"
                     : answers[q.id] !== undefined
-                    ? "bg-emerald-500/15 text-emerald-300 border border-emerald-400/25"
-                    : "bg-slate-800/60 text-slate-500 border border-slate-700/40 hover:bg-slate-700/60"
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
                 }`}
               >
                 {i + 1}
               </button>
             ))}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-[9px] text-slate-500 sm:mt-3 sm:gap-4 sm:text-xs">
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-[9px] text-slate-600 sm:mt-3 sm:gap-4 sm:text-xs">
             <span className="flex items-center gap-1 sm:gap-1.5">
-              <span className="h-2 w-2 rounded bg-cyan-500 sm:h-2.5 sm:w-2.5" /> Current
+              <span className="h-2 w-2 rounded bg-blue-600 sm:h-2.5 sm:w-2.5" /> Current
             </span>
             <span className="flex items-center gap-1 sm:gap-1.5">
               <span className="h-2 w-2 rounded bg-emerald-500/40 sm:h-2.5 sm:w-2.5" /> Answered
             </span>
             <span className="flex items-center gap-1 sm:gap-1.5">
-              <span className="h-2 w-2 rounded bg-slate-700 sm:h-2.5 sm:w-2.5" /> Unanswered
+              <span className="h-2 w-2 rounded bg-slate-300 sm:h-2.5 sm:w-2.5" /> Unanswered
             </span>
           </div>
         </div>
