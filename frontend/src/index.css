@@ -2,6 +2,56 @@
 
 @import "tailwindcss";
 
+/* === Tailwind v4 Theme Extension === */
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+
+  --color-primary: #0a0e1a;
+  --color-secondary: #0f1629;
+
+  --animate-fade-in-up: fade-in-up 0.6s ease-out both;
+  --animate-pulse-glow: pulseGlow 2.6s ease-in-out infinite;
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-fade-in: fadeIn 0.4s ease-out both;
+  --animate-slide-in-right: slideInRight 0.5s ease-out both;
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+
+  @keyframes fade-in-up {
+    0% { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.35); }
+    50% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.5); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+}
+
+/* === CSS Variables === */
 :root {
   --bg-primary: #0a0e1a;
   --bg-secondary: #0f1629;
@@ -24,10 +74,17 @@
   --glow-red: rgba(239, 68, 68, 0.12);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* 
+ * NOTE: Do NOT add an unlayered * { margin: 0; padding: 0; } reset here.
+ * Tailwind v4 uses @layer for its utilities, and unlayered styles always
+ * override layered styles in the CSS cascade — this would silently break
+ * ALL Tailwind spacing utilities (px-6, mx-auto, gap-*, mt-*, py-*, etc.).
+ * Tailwind v4's built-in preflight already handles resets properly.
+ */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
 }
 
 html {
@@ -186,6 +243,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   font-weight: 600;
   border-radius: 9999px;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 .badge-active {
   color: #6ee7b7;
@@ -208,54 +266,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
-/* === Animations === */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.4); }
-  50% { box-shadow: 0 0 0 12px rgba(34, 211, 238, 0); }
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.5); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
+/* === Legacy Animation Classes (used in JSX) === */
 .animate-fadeInUp {
   animation: fadeInUp 0.6s ease-out both;
 }
@@ -335,6 +346,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border-radius: 1rem;
   backdrop-filter: blur(20px);
   animation: fadeInUp 0.3s ease-out;
+  max-width: 90vw;
 }
 
 /* === Timer critical === */
@@ -356,4 +368,36 @@ h1, h2, h3, h4, h5, h6, .font-display {
   height: 2px;
   background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
   border-radius: 1px;
+}
+
+/* ========================================== */
+/* === RESPONSIVE: Admin Dashboard Sidebar === */
+/* ========================================== */
+
+/* Mobile sidebar overlay */
+@media (max-width: 1023px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 50;
+  }
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+  .admin-main {
+    margin-left: 0 !important;
+  }
+}
+
+/* ========================================== */
+/* === RESPONSIVE: General Mobile Tweaks === */
+/* ========================================== */
+@media (max-width: 640px) {
+  .warning-toast {
+    left: 1rem;
+    right: 1rem;
+    transform: none;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+  }
 }

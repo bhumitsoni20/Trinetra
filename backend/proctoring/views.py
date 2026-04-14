@@ -1,4 +1,5 @@
 import base64
+import binascii
 import io
 import uuid
 
@@ -32,14 +33,31 @@ from .socketio_server import sio
 # ---------- helpers ----------
 
 def decode_base64_image(image_data: str) -> np.ndarray:
+    if not image_data or not image_data.strip():
+        raise ValueError("Empty image payload")
     if "," in image_data:
         _, image_data = image_data.split(",", 1)
+    image_data = image_data.strip()
+    if not image_data:
+        raise ValueError("Empty image payload")
+    # Fix padding if missing
+    padding_needed = len(image_data) % 4
+    if padding_needed:
+        image_data += "=" * (4 - padding_needed)
+
     try:
         image_bytes = base64.b64decode(image_data)
-    except Exception as exc:
+    except (ValueError, binascii.Error) as exc:
         raise ValueError("Invalid base64 image payload") from exc
+    if not image_bytes:
+        raise ValueError("Empty image payload")
     np_buffer = np.frombuffer(image_bytes, dtype=np.uint8)
-    frame = cv2.imdecode(np_buffer, cv2.IMREAD_COLOR)
+    if np_buffer.size == 0:
+        raise ValueError("Empty image payload")
+    try:
+        frame = cv2.imdecode(np_buffer, cv2.IMREAD_COLOR)
+    except cv2.error as exc:
+        raise ValueError("Unable to decode image") from exc
     if frame is None:
         raise ValueError("Unable to decode image")
     return frame
@@ -49,6 +67,12 @@ def save_snapshot_from_base64(image_data: str):
     """Save a base64 image as a Django ContentFile and return it."""
     if "," in image_data:
         _, image_data = image_data.split(",", 1)
+
+    image_data = image_data.strip()
+    padding_needed = len(image_data) % 4
+    if padding_needed:
+        image_data += "=" * (4 - padding_needed)
+
     try:
         image_bytes = base64.b64decode(image_data)
         filename = f"{uuid.uuid4().hex}.jpg"
@@ -438,54 +462,72 @@ class DetectAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        result = detect_suspicious_behavior(frame_bgr=frame, user_id=user_id)
+        try:
+            result = detect_suspicious_behavior(frame_bgr=frame, user_id=user_id)
+        except Exception as exc:
+            return Response(
+                {"detail": f"Detection error: {exc}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         # Resolve user & session
         user = None
         session = None
         if session_id:
             try:
-                session = ExamSession.objects.get(id=session_id)
+                session = ExamSession.objects.get(id=int(session_id))
                 user = session.user
-            except ExamSession.DoesNotExist:
+            except (ExamSession.DoesNotExist, ValueError, TypeError):
                 pass
 
         if not user:
+            # Try numeric ID first, then username lookup
             try:
-                user = User.objects.get(id=int(user_id))
-            except (ValueError, User.DoesNotExist):
+                uid = int(user_id)
+                user = User.objects.get(id=uid)
+            except (ValueError, TypeError, User.DoesNotExist):
+                # user_id is a string like 'candidate-001' — that's fine,
+                # try username match as a last resort
                 try:
                     user = User.objects.get(username=user_id)
                 except User.DoesNotExist:
-                    pass
+                    pass  # user stays None — will be stored via user_label only
+
+        # Determine the label to store
+        user_label = user.username if user else user_id
 
         logged_events = []
-        should_save_image = any(
-            e in ("Multiple Faces Detected", "Face Not Visible") for e in result["alerts"]
-        )
+        should_save_image = len(result["alerts"]) > 0
 
         for event_name in result["alerts"]:
             event_risk = EVENT_RISK_SCORES.get(event_name, 0)
-            log_entry = ProctoringLog(
-                user=user,
-                user_label=user_id,
-                event=event_name,
-                risk_score=event_risk,
-                session=session,
-            )
+            try:
+                log_entry = ProctoringLog(
+                    user=user,
+                    user_label=user_label,
+                    event=event_name,
+                    risk_score=event_risk,
+                    session=session,
+                )
 
-            # Save snapshot for suspicious events
-            if should_save_image and event_name in ("Multiple Faces Detected", "Face Not Visible"):
-                snapshot = save_snapshot_from_base64(str(image_data))
-                if snapshot:
-                    log_entry.image = snapshot
+                # Save snapshot for suspicious events
+                if should_save_image:
+                    snapshot = save_snapshot_from_base64(str(image_data))
+                    if snapshot:
+                        log_entry.image = snapshot
 
-            log_entry.save()
+                log_entry.save()
+            except Exception:
+                # If DB write fails, continue with remaining alerts
+                continue
 
             # Update session violations
             if session and session.status == "active":
-                session.violations_count += 1
-                session.save(update_fields=["violations_count"])
+                try:
+                    session.violations_count += 1
+                    session.save(update_fields=["violations_count"])
+                except Exception:
+                    pass
 
             image_url = ""
             if log_entry.image:
@@ -496,7 +538,7 @@ class DetectAPIView(APIView):
 
             payload = {
                 "user_id": user_id,
-                "username": user.username if user else user_id,
+                "username": user.username if user else user_label,
                 "email": user.email if user else "",
                 "event": event_name,
                 "risk_score": event_risk,
@@ -525,8 +567,10 @@ class DetectAPIView(APIView):
 class LogListAPIView(generics.ListAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
-    queryset = ProctoringLog.objects.all()[:200]
     serializer_class = ProctoringLogSerializer
+
+    def get_queryset(self):
+        return ProctoringLog.objects.select_related("user", "session").all()[:200]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

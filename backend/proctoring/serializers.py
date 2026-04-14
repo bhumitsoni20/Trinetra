@@ -100,15 +100,29 @@ class ProctoringLogSerializer(serializers.ModelSerializer):
         )
 
     def get_username(self, obj):
-        return obj.user.username if obj.user else obj.user_label
+        try:
+            if obj.user_id and obj.user:
+                return obj.user.username
+        except Exception:
+            pass
+        return obj.user_label or ""
 
     def get_email(self, obj):
-        return obj.user.email if obj.user else ""
+        try:
+            if obj.user_id and obj.user:
+                return obj.user.email
+        except Exception:
+            pass
+        return ""
 
     def get_image_url(self, obj):
-        if obj.image:
-            request = self.context.get("request")
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
+        try:
+            if obj.image:
+                request = self.context.get("request")
+                if request:
+                    return request.build_absolute_uri(obj.image.url)
+                return obj.image.url
+        except Exception:
+            pass
         return None
+

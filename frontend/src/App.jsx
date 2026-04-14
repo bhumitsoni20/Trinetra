@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import StudentLogin from "./pages/StudentLogin";
 import AdminLogin from "./pages/AdminLogin";
@@ -37,11 +37,11 @@ function App() {
       {/* Public */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={
-        user ? <Navigate to={isAdmin ? "/admin" : "/exam-gate"} /> :
+        user ? <Navigate to={isAdmin ? "/admin" : "/exam-gate"} replace /> :
         <StudentLogin onLogin={handleLogin} />
       } />
       <Route path="/admin-login" element={
-        user ? <Navigate to={isAdmin ? "/admin" : "/exam-gate"} /> :
+        user ? <Navigate to={isAdmin ? "/admin" : "/exam-gate"} replace /> :
         <AdminLogin onLogin={handleLogin} />
       } />
 
@@ -58,15 +58,15 @@ function App() {
       {/* Admin Routes */}
       <Route path="/admin" element={
         isAdmin ? <AdminDashboard user={user} onLogout={handleLogout} /> :
-        <Navigate to="/admin-login" />
+        <Navigate to="/login" />
       } />
       <Route path="/admin/users" element={
         isAdmin ? <AdminUsers user={user} onLogout={handleLogout} /> :
-        <Navigate to="/admin-login" />
+        <Navigate to="/login" />
       } />
       <Route path="/admin/logs" element={
         isAdmin ? <AdminLogs user={user} onLogout={handleLogout} /> :
-        <Navigate to="/admin-login" />
+        <Navigate to="/login" />
       } />
 
       {/* Fallback */}

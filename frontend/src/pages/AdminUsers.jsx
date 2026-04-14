@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Shield, Monitor, Users, FileText, LogOut, Edit3, Trash2, Save, X,
-  Search, UserPlus, Wifi, WifiOff
+  Search, UserPlus, Menu
 } from "lucide-react";
 import { fetchUsers, updateUser, deleteUser, registerUser } from "../services/api";
 
@@ -16,6 +16,7 @@ export default function AdminUsers({ user, onLogout }) {
   const [showCreate, setShowCreate] = useState(false);
   const [newUser, setNewUser] = useState({ username: "", email: "", password: "", first_name: "", last_name: "", role: "student" });
   const [error, setError] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const loadUsers = async () => {
     try {
@@ -83,28 +84,45 @@ export default function AdminUsers({ user, onLogout }) {
     <div className="relative min-h-screen">
       <div className="ambient-bg" />
 
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 flex h-full w-[240px] flex-col border-r border-slate-800/60 bg-[#0a0e1a]/95 backdrop-blur-xl">
-        <div className="flex items-center gap-3 border-b border-slate-800/60 px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600">
-            <Shield size={18} className="text-white" />
+      <aside className={`fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-slate-800/60 bg-[#0a0e1a]/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex items-center justify-between border-b border-slate-800/60 px-5 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600">
+              <Shield size={18} className="text-white" />
+            </div>
+            <div>
+              <p className="font-display text-sm font-bold text-white">Trinetra</p>
+              <p className="text-[10px] text-slate-500">Admin Panel</p>
+            </div>
           </div>
-          <div>
-            <p className="font-display text-sm font-bold text-white">Trinetra</p>
-            <p className="text-[10px] text-slate-500">Admin Panel</p>
-          </div>
+          <button
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/5 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
-          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition">
+          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
             <Monitor size={16} />
             Dashboard
           </Link>
-          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 text-sm font-medium text-white">
+          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 text-sm font-medium text-white" onClick={() => setSidebarOpen(false)}>
             <Users size={16} className="text-cyan-400" />
             User Management
           </Link>
-          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition">
+          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
             <FileText size={16} />
             Alert Logs
           </Link>
@@ -118,21 +136,32 @@ export default function AdminUsers({ user, onLogout }) {
       </aside>
 
       {/* Main Content */}
-      <main className="relative z-10 ml-[240px]">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-800/60 bg-[#0a0e1a]/90 backdrop-blur-xl px-8 py-4">
-          <div>
-            <h1 className="font-display text-xl font-bold text-white">User Management</h1>
-            <p className="text-xs text-slate-500">View, edit, and manage all users</p>
+      <main className="relative z-10 lg:ml-[240px]">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-800/60 bg-[#0a0e1a]/90 backdrop-blur-xl px-4 py-3 sm:px-8 sm:py-4">
+          <div className="flex items-center gap-3">
+            <button
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700/50 text-slate-400 hover:bg-white/5 lg:hidden"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open sidebar"
+            >
+              <Menu size={18} />
+            </button>
+            <div>
+              <h1 className="font-display text-lg font-bold text-white sm:text-xl">User Management</h1>
+              <p className="text-[10px] text-slate-500 sm:text-xs">View, edit, and manage all users</p>
+            </div>
           </div>
           <button
             onClick={() => setShowCreate(!showCreate)}
             className="btn-primary text-xs"
           >
-            <UserPlus size={14} /> Create User
+            <UserPlus size={14} />
+            <span className="hidden sm:inline">Create User</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </header>
 
-        <div className="p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           {error && (
             <div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300 animate-fadeIn">
               {error}
@@ -144,9 +173,9 @@ export default function AdminUsers({ user, onLogout }) {
 
           {/* Create User Form */}
           {showCreate && (
-            <div className="mb-6 glass-card rounded-2xl p-6 animate-fadeInUp">
-              <h3 className="font-display text-lg font-semibold text-white mb-4">Create New User</h3>
-              <form onSubmit={handleCreate} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mb-6 glass-card rounded-2xl p-4 animate-fadeInUp sm:p-6">
+              <h3 className="font-display text-base font-semibold text-white mb-4 sm:text-lg">Create New User</h3>
+              <form onSubmit={handleCreate} className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                 <input className="input-field" placeholder="Username" value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} required />
                 <input className="input-field" placeholder="Email" type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
                 <input className="input-field" placeholder="Password" type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required minLength={6} />
@@ -169,7 +198,7 @@ export default function AdminUsers({ user, onLogout }) {
           )}
 
           {/* Search */}
-          <div className="mb-6 relative">
+          <div className="mb-4 relative sm:mb-6">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               className="input-field pl-10"
@@ -179,8 +208,70 @@ export default function AdminUsers({ user, onLogout }) {
             />
           </div>
 
-          {/* Users Table */}
-          <div className="glass-card-static rounded-2xl overflow-hidden">
+          {/* Mobile Card View */}
+          <div className="space-y-3 md:hidden">
+            {loading ? (
+              <div className="glass-card rounded-2xl p-6 text-center">
+                <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="glass-card rounded-2xl p-6 text-center text-sm text-slate-500">
+                No users found
+              </div>
+            ) : (
+              filtered.map((u) => (
+                <div key={u.id} className="glass-card rounded-xl p-4">
+                  {editingId === u.id ? (
+                    <div className="space-y-3">
+                      <input className="input-field text-xs" placeholder="Username" value={editData.username} onChange={(e) => setEditData({ ...editData, username: e.target.value })} />
+                      <input className="input-field text-xs" placeholder="Email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} />
+                      <select className="input-field text-xs" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })}>
+                        <option value="student">Student</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                      <div className="flex gap-2">
+                        <button onClick={handleSave} className="btn-primary text-xs flex-1"><Save size={13} /> Save</button>
+                        <button onClick={() => setEditingId(null)} className="btn-ghost text-xs flex-1"><X size={13} /> Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-slate-300">
+                            {u.username?.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{u.username}</p>
+                            <p className="text-[10px] text-slate-500 truncate">{u.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button onClick={() => handleEdit(u)} className="rounded-lg bg-blue-500/10 p-2 text-blue-400 hover:bg-blue-500/20 transition">
+                            <Edit3 size={13} />
+                          </button>
+                          <button onClick={() => handleDelete(u.id)} className="rounded-lg bg-red-500/10 p-2 text-red-400 hover:bg-red-500/20 transition">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="mt-2.5 flex items-center gap-2">
+                        <span className={`badge ${u.role === "admin" ? "badge-suspicious" : "badge-active"}`}>
+                          {u.role}
+                        </span>
+                        <span className={`badge ${u.is_active ? "badge-active" : "badge-disqualified"}`}>
+                          {u.is_active ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block glass-card-static rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>

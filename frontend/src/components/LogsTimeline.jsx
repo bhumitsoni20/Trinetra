@@ -38,7 +38,7 @@ export default function LogsTimeline({ logs }) {
           <ul className="space-y-3">
             {logs.map((item) => (
               <li key={item.id} className="relative rounded-2xl border border-slate-700/70 bg-slate-900/55 p-3.5">
-                <span className="absolute left-0 top-0 h-full w-[3px] rounded-l-2xl bg-linear-to-b from-cyan-400 to-teal-400" />
+                <span className="absolute left-0 top-0 h-full w-[3px] rounded-l-2xl bg-gradient-to-b from-cyan-400 to-teal-400" />
                 <div className="flex flex-wrap items-center justify-between gap-2 pl-2">
                   <p className="text-sm font-medium text-slate-100">{item.event}</p>
                   <p className="text-xs text-slate-400">{formatDateTime(item.timestamp)}</p>

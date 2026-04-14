@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Shield, Monitor, Users, FileText, LogOut, AlertTriangle, Clock,
-  Filter, Image, Eye
+  Filter, Image, Menu, X
 } from "lucide-react";
 import { fetchLogs } from "../services/api";
 import useProctoringSocket from "../hooks/useProctoringSocket";
@@ -12,6 +12,8 @@ export default function AdminLogs({ user, onLogout }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const handleRealtimeAlert = useCallback((payload) => {
     setLogs((prev) => [
@@ -81,28 +83,45 @@ export default function AdminLogs({ user, onLogout }) {
     <div className="relative min-h-screen">
       <div className="ambient-bg" />
 
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 flex h-full w-[240px] flex-col border-r border-slate-800/60 bg-[#0a0e1a]/95 backdrop-blur-xl">
-        <div className="flex items-center gap-3 border-b border-slate-800/60 px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600">
-            <Shield size={18} className="text-white" />
+      <aside className={`fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-slate-800/60 bg-[#0a0e1a]/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex items-center justify-between border-b border-slate-800/60 px-5 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600">
+              <Shield size={18} className="text-white" />
+            </div>
+            <div>
+              <p className="font-display text-sm font-bold text-white">Trinetra</p>
+              <p className="text-[10px] text-slate-500">Admin Panel</p>
+            </div>
           </div>
-          <div>
-            <p className="font-display text-sm font-bold text-white">Trinetra</p>
-            <p className="text-[10px] text-slate-500">Admin Panel</p>
-          </div>
+          <button
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/5 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
-          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition">
+          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
             <Monitor size={16} />
             Dashboard
           </Link>
-          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition">
+          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
             <Users size={16} />
             User Management
           </Link>
-          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 text-sm font-medium text-white">
+          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 text-sm font-medium text-white" onClick={() => setSidebarOpen(false)}>
             <FileText size={16} className="text-cyan-400" />
             Alert Logs
           </Link>
@@ -116,30 +135,39 @@ export default function AdminLogs({ user, onLogout }) {
       </aside>
 
       {/* Main Content */}
-      <main className="relative z-10 ml-[240px]">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-800/60 bg-[#0a0e1a]/90 backdrop-blur-xl px-8 py-4">
-          <div>
-            <h1 className="font-display text-xl font-bold text-white">Alert Logs</h1>
-            <p className="text-xs text-slate-500">Complete history of all proctoring events</p>
+      <main className="relative z-10 lg:ml-[240px]">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-800/60 bg-[#0a0e1a]/90 backdrop-blur-xl px-4 py-3 sm:px-8 sm:py-4">
+          <div className="flex items-center gap-3">
+            <button
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700/50 text-slate-400 hover:bg-white/5 lg:hidden"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open sidebar"
+            >
+              <Menu size={18} />
+            </button>
+            <div>
+              <h1 className="font-display text-lg font-bold text-white sm:text-xl">Alert Logs</h1>
+              <p className="text-[10px] text-slate-500 sm:text-xs">Complete history of all proctoring events</p>
+            </div>
           </div>
-          <span className="text-xs text-slate-500">{filtered.length} events</span>
+          <span className="text-[10px] text-slate-500 sm:text-xs">{filtered.length} events</span>
         </header>
 
-        <div className="p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           {/* Filters */}
-          <div className="mb-6 flex flex-wrap items-center gap-2 animate-fadeInUp">
+          <div className="mb-4 flex flex-wrap items-center gap-1.5 animate-fadeInUp sm:mb-6 sm:gap-2">
             <Filter size={14} className="text-slate-500" />
             {[
-              { key: "all", label: "All Events" },
-              { key: "face", label: "Face Not Visible" },
-              { key: "multi", label: "Multiple Faces" },
-              { key: "tab", label: "Tab Switch" },
+              { key: "all", label: "All" },
+              { key: "face", label: "Face" },
+              { key: "multi", label: "Multi-face" },
+              { key: "tab", label: "Tab" },
               { key: "movement", label: "Movement" },
             ].map((f) => (
               <button
                 key={f.key}
                 onClick={() => setFilter(f.key)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                className={`rounded-lg px-2.5 py-1 text-[10px] font-medium transition sm:px-3 sm:py-1.5 sm:text-xs ${
                   filter === f.key
                     ? "bg-cyan-500/15 text-cyan-300 border border-cyan-400/25"
                     : "bg-slate-800/50 text-slate-500 border border-slate-700/40 hover:text-slate-300"
@@ -151,7 +179,7 @@ export default function AdminLogs({ user, onLogout }) {
           </div>
 
           {/* Logs */}
-          <div className="space-y-2.5 animate-fadeInUp stagger-1">
+          <div className="space-y-2 animate-fadeInUp stagger-1 sm:space-y-2.5">
             {loading ? (
               <div className="glass-card rounded-2xl p-10 text-center">
                 <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
@@ -164,16 +192,16 @@ export default function AdminLogs({ user, onLogout }) {
               filtered.map((log) => (
                 <div
                   key={log.id}
-                  className={`glass-card rounded-xl p-4 border ${getEventColor(log.event)}`}
+                  className={`glass-card rounded-xl p-3 border sm:p-4 ${getEventColor(log.event)}`}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <span className="text-lg">{getEventIcon(log.event)}</span>
-                      <div>
-                        <p className={`text-sm font-semibold ${getEventTextColor(log.event)}`}>
+                  <div className="flex items-start justify-between gap-2 sm:gap-4">
+                    <div className="flex items-start gap-2 min-w-0 sm:gap-3">
+                      <span className="text-base sm:text-lg">{getEventIcon(log.event)}</span>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-semibold sm:text-sm ${getEventTextColor(log.event)}`}>
                           {log.event}
                         </p>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="mt-0.5 text-[10px] text-slate-500 truncate sm:text-xs">
                           {log.username || log.user_id || "—"}
                           {log.email ? ` · ${log.email}` : ""}
                           {" · Risk: "}
@@ -181,30 +209,38 @@ export default function AdminLogs({ user, onLogout }) {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex flex-col items-end gap-1 shrink-0 sm:flex-row sm:items-center sm:gap-3">
                       {log.image_url && (
                         <a
                           href={log.image_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 rounded-lg bg-blue-500/10 px-2 py-1 text-xs text-blue-400 hover:bg-blue-500/20 transition"
+                          className="flex items-center gap-1 rounded-lg bg-blue-500/10 px-2 py-1 text-[10px] text-blue-400 hover:bg-blue-500/20 transition sm:text-xs"
                         >
-                          <Image size={12} /> View
+                          <Image size={11} /> View
                         </a>
                       )}
-                      <span className="flex items-center gap-1 text-[11px] text-slate-600">
-                        <Clock size={11} />
+                      <span className="flex items-center gap-1 text-[9px] text-slate-600 sm:text-[11px]">
+                        <Clock size={10} className="sm:hidden" />
+                        <Clock size={11} className="hidden sm:block" />
                         {formatDateTime(log.timestamp)}
                       </span>
                     </div>
                   </div>
                   {log.image_url && (
-                    <div className="mt-3">
-                      <img
-                        src={log.image_url}
-                        alt="Suspicious activity snapshot"
-                        className="w-full max-w-sm rounded-lg border border-slate-700/50"
-                      />
+                    <div className="mt-2 sm:mt-3">
+                      <div className="cursor-pointer group relative inline-block w-full max-w-sm" onClick={() => setSelectedImage(log.image_url)}>
+                        <img
+                          src={log.image_url}
+                          alt="Suspicious activity snapshot"
+                          className="w-full rounded-lg border border-slate-700/50 transition duration-200 group-hover:opacity-80"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="bg-black/60 text-white text-[10px] px-2 py-1 rounded border border-white/20 backdrop-blur-sm flex items-center gap-1 sm:text-xs">
+                            <Image size={12} /> Click to expand
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -213,6 +249,28 @@ export default function AdminLogs({ user, onLogout }) {
           </div>
         </div>
       </main>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn" onClick={() => setSelectedImage(null)}>
+          <div className="relative max-w-4xl w-full bg-[#0a0e1a] rounded-2xl border border-slate-700/60 overflow-hidden shadow-2xl animate-scaleIn" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-700/60 p-3 sm:p-4 bg-[#0d1224]">
+              <h3 className="font-display text-white text-sm sm:text-base font-semibold flex items-center gap-2">
+                <AlertTriangle className="text-amber-400" size={16} /> Alert Snapshot
+              </h3>
+              <button 
+                onClick={() => setSelectedImage(null)}
+                className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-2 sm:p-4 flex justify-center bg-black/40">
+              <img src={selectedImage} alt="Expanded Alert" className="max-h-[60vh] sm:max-h-[75vh] w-auto object-contain rounded-lg shadow-xl" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
