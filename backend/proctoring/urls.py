@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     ActiveSessionsAPIView,
+    AdoptionStatsAPIView,
     DetectAPIView,
     LoginAPIView,
     LogListAPIView,
@@ -37,4 +38,7 @@ urlpatterns = [
     # Sessions
     path("sessions/", ActiveSessionsAPIView.as_view(), name="sessions"),
     path("sessions/<int:pk>/", SessionDetailAPIView.as_view(), name="session-detail"),
+
+    # Metrics
+    path("metrics/adoption/", AdoptionStatsAPIView.as_view(), name="adoption-metrics"),
 ]

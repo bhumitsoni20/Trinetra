@@ -4,8 +4,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Sora", "system-ui", "sans-serif"],
-        display: ["Space Grotesk", "system-ui", "sans-serif"],
+        sans: ["Lexend Deca", "system-ui", "sans-serif"],
+        display: ["Lexend Deca", "system-ui", "sans-serif"],
       },
       keyframes: {
         "fade-in-up": {

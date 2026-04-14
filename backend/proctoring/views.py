@@ -233,17 +233,22 @@ class LoginAPIView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        email = request.data.get("email", "").strip()
+        identifier = request.data.get("email") or request.data.get("username") or request.data.get("identifier")
+        identifier = (identifier or "").strip()
         password = request.data.get("password", "")
 
-        if not email or not password:
-            return Response({"detail": "Email and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not identifier or not password:
+            return Response({"detail": "Email/username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # find user by email
-        try:
-            user_obj = User.objects.get(email=email)
-        except User.DoesNotExist:
+        # find user by email or username
+        user_obj = User.objects.filter(email__iexact=identifier).first()
+        if not user_obj:
+            user_obj = User.objects.filter(username__iexact=identifier).first()
+        if not user_obj:
             return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user_obj.is_active:
+            return Response({"detail": "Account is disabled."}, status=status.HTTP_403_FORBIDDEN)
 
         user = authenticate(username=user_obj.username, password=password)
         if user is None:
@@ -638,4 +643,28 @@ class SessionDetailAPIView(APIView):
         return Response({
             "session": ExamSessionSerializer(session).data,
             "logs": log_data,
+        })
+
+
+# ---------- Adoption Metrics ----------
+
+class AdoptionStatsAPIView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        total_sessions = ExamSession.objects.count()
+        completed_exams = ExamSession.objects.filter(status="completed").count()
+        disqualified_exams = ExamSession.objects.filter(status="disqualified").count()
+        active_exams = ExamSession.objects.filter(status="active").count()
+        total_exams = completed_exams + disqualified_exams
+        total_users = User.objects.count()
+
+        return Response({
+            "total_exams": total_exams,
+            "completed_exams": completed_exams,
+            "disqualified_exams": disqualified_exams,
+            "active_exams": active_exams,
+            "total_sessions": total_sessions,
+            "total_users": total_users,
         })

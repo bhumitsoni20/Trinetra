@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, Mail, Lock, LogIn } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
+
+import Logo from "../assets/TRINETRA.png";
 
 import { loginUser } from "../services/api";
 
 export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -40,22 +43,24 @@ export default function LoginPage({ onLogin }) {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="animate-fadeInUp mb-8 flex flex-col items-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25">
-            <Eye size={28} className="text-white" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+            <img src={Logo} alt="Trinetra logo" className="h-11 w-11 object-contain" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-white">Sign In</h1>
-          <p className="mt-1 text-sm text-slate-400">Use your account credentials to continue.</p>
+          <h1 className="font-display text-2xl font-bold text-slate-900">Sign In</h1>
+          <p className="mt-1 text-sm text-slate-600">Use your account credentials to continue.</p>
         </div>
 
         <div className="glass-card animate-fadeInUp stagger-1 rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-400">Email Address</label>
-              <div className="relative">
-                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <label className="mb-1.5 block text-xs font-medium text-slate-700">Email Address</label>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-100">
+                  <Mail size={16} className="text-slate-600" />
+                </span>
                 <input
                   type="email"
-                  className="input-field pl-10"
+                  className="input-field flex-1"
                   placeholder="name@domain.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -65,18 +70,30 @@ export default function LoginPage({ onLogin }) {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-400">Password</label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="password"
-                  className="input-field pl-10"
-                  placeholder="........"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
+              <label className="mb-1.5 block text-xs font-medium text-slate-700">Password</label>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-100">
+                  <Lock size={16} className="text-slate-600" />
+                </span>
+                <div className="relative flex-1">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="input-field w-full pr-12"
+                    placeholder="........"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-900"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -101,13 +118,13 @@ export default function LoginPage({ onLogin }) {
             </button>
           </form>
 
-          <p className="mt-5 text-center text-sm text-slate-400">
+          <p className="mt-5 text-center text-sm text-slate-600">
             Admin and student accounts use the same login form.
           </p>
         </div>
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-xs text-slate-500 hover:text-slate-400 transition">
+          <Link to="/" className="text-xs text-slate-600 hover:text-slate-900 transition">
             Back to Home
           </Link>
         </div>

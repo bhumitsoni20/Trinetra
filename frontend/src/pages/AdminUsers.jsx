@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Shield, Monitor, Users, FileText, LogOut, Edit3, Trash2, Save, X,
+  Monitor, Users, FileText, LogOut, Edit3, Trash2, Save, X,
   Search, UserPlus, Menu
 } from "lucide-react";
 import { fetchUsers, updateUser, deleteUser, registerUser } from "../services/api";
+import Logo from "../assets/TRINETRA.png";
 
 export default function AdminUsers({ user, onLogout }) {
   const navigate = useNavigate();
@@ -93,19 +94,21 @@ export default function AdminUsers({ user, onLogout }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-slate-800/60 bg-[#0a0e1a]/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center justify-between border-b border-slate-800/60 px-5 py-5">
+      <aside className={`fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-slate-200 bg-white/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600">
-              <Shield size={18} className="text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl">
+              <img src={Logo} alt="Trinetra logo" className="h-8 w-8 object-contain" />
             </div>
             <div>
-              <p className="font-display text-sm font-bold text-white">Trinetra</p>
-              <p className="text-[10px] text-slate-500">Admin Panel</p>
+              <p className="font-display text-base font-bold text-slate-900">
+                <span className="text-[#6B2BD9]">T</span>RI<span className="text-[#6B2BD9]">N</span>ETRA
+              </p>
+              <p className="text-xs text-slate-600">Admin Panel</p>
             </div>
           </div>
           <button
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/5 lg:hidden"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar"
           >
@@ -114,22 +117,22 @@ export default function AdminUsers({ user, onLogout }) {
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
-          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
-            <Monitor size={16} />
+          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" onClick={() => setSidebarOpen(false)}>
+            <Monitor size={18} />
             Dashboard
           </Link>
-          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 text-sm font-medium text-white" onClick={() => setSidebarOpen(false)}>
-            <Users size={16} className="text-cyan-400" />
+          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2.5 text-base font-medium text-slate-900" onClick={() => setSidebarOpen(false)}>
+            <Users size={18} className="text-blue-600" />
             User Management
           </Link>
-          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
-            <FileText size={16} />
+          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" onClick={() => setSidebarOpen(false)}>
+            <FileText size={18} />
             Alert Logs
           </Link>
         </nav>
 
-        <div className="border-t border-slate-800/60 px-3 py-4">
-          <button onClick={() => { onLogout(); navigate("/"); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition">
+        <div className="border-t border-slate-200 px-3 py-4">
+          <button onClick={() => { onLogout(); navigate("/"); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-600 hover:bg-red-500/10 hover:text-red-600 transition">
             <LogOut size={14} /> Sign Out
           </button>
         </div>
@@ -137,18 +140,18 @@ export default function AdminUsers({ user, onLogout }) {
 
       {/* Main Content */}
       <main className="relative z-10 lg:ml-[240px]">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-800/60 bg-[#0a0e1a]/90 backdrop-blur-xl px-4 py-3 sm:px-8 sm:py-4">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/90 backdrop-blur-xl px-4 py-3 sm:px-8 sm:py-4">
           <div className="flex items-center gap-3">
             <button
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700/50 text-slate-400 hover:bg-white/5 lg:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 lg:hidden"
               onClick={() => setSidebarOpen(true)}
               aria-label="Open sidebar"
             >
               <Menu size={18} />
             </button>
             <div>
-              <h1 className="font-display text-lg font-bold text-white sm:text-xl">User Management</h1>
-              <p className="text-[10px] text-slate-500 sm:text-xs">View, edit, and manage all users</p>
+              <h1 className="font-display text-xl font-bold text-slate-900 sm:text-2xl">User Management</h1>
+              <p className="text-sm text-slate-600 sm:text-sm">View, edit, and manage all users</p>
             </div>
           </div>
           <button
@@ -163,9 +166,9 @@ export default function AdminUsers({ user, onLogout }) {
 
         <div className="p-4 sm:p-6 lg:p-8">
           {error && (
-            <div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300 animate-fadeIn">
+            <div className="mb-4 rounded-xl border border-red-400/30 bg-red-50 px-4 py-2.5 text-sm text-red-700 animate-fadeIn">
               {error}
-              <button onClick={() => setError("")} className="float-right text-red-400 hover:text-red-300">
+              <button onClick={() => setError("")} className="float-right text-red-600 hover:text-red-500">
                 <X size={14} />
               </button>
             </div>
@@ -174,7 +177,7 @@ export default function AdminUsers({ user, onLogout }) {
           {/* Create User Form */}
           {showCreate && (
             <div className="mb-6 glass-card rounded-2xl p-4 animate-fadeInUp sm:p-6">
-              <h3 className="font-display text-base font-semibold text-white mb-4 sm:text-lg">Create New User</h3>
+              <h3 className="font-display text-base font-semibold text-slate-900 mb-4 sm:text-lg">Create New User</h3>
               <form onSubmit={handleCreate} className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                 <input className="input-field" placeholder="Username" value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} required />
                 <input className="input-field" placeholder="Email" type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
@@ -198,10 +201,12 @@ export default function AdminUsers({ user, onLogout }) {
           )}
 
           {/* Search */}
-          <div className="mb-4 relative sm:mb-6">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <div className="mb-4 flex items-center gap-3 sm:mb-6">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-100">
+              <Search size={16} className="text-slate-600" />
+            </span>
             <input
-              className="input-field pl-10"
+              className="input-field flex-1"
               placeholder="Search users by name or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -215,7 +220,7 @@ export default function AdminUsers({ user, onLogout }) {
                 <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
               </div>
             ) : filtered.length === 0 ? (
-              <div className="glass-card rounded-2xl p-6 text-center text-sm text-slate-500">
+              <div className="glass-card rounded-2xl p-6 text-center text-sm text-slate-600">
                 No users found
               </div>
             ) : (
@@ -238,12 +243,12 @@ export default function AdminUsers({ user, onLogout }) {
                     <>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-slate-300">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-700">
                             {u.username?.charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-white truncate">{u.username}</p>
-                            <p className="text-[10px] text-slate-500 truncate">{u.email}</p>
+                            <p className="text-sm font-medium text-slate-900 truncate">{u.username}</p>
+                            <p className="text-[10px] text-slate-600 truncate">{u.email}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -275,12 +280,12 @@ export default function AdminUsers({ user, onLogout }) {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-800/60">
-                    <th className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-slate-500">User</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Email</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Role</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
-                    <th className="px-5 py-3.5 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Actions</th>
+                  <tr className="border-b border-slate-200">
+                    <th className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-slate-600">User</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-slate-600">Email</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-slate-600">Role</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-wider text-slate-600">Status</th>
+                    <th className="px-5 py-3.5 text-right text-xs font-medium uppercase tracking-wider text-slate-600">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -292,22 +297,22 @@ export default function AdminUsers({ user, onLogout }) {
                     </tr>
                   ) : filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">
+                      <td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-600">
                         No users found
                       </td>
                     </tr>
                   ) : (
                     filtered.map((u) => (
-                      <tr key={u.id} className="border-b border-slate-800/40 hover:bg-white/[0.02] transition">
+                      <tr key={u.id} className="border-b border-slate-200 hover:bg-slate-50 transition">
                         <td className="px-5 py-4">
                           {editingId === u.id ? (
                             <input className="input-field text-xs py-1.5" value={editData.username} onChange={(e) => setEditData({ ...editData, username: e.target.value })} />
                           ) : (
                             <div className="flex items-center gap-3">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-slate-300">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-700">
                                 {u.username?.charAt(0).toUpperCase()}
                               </div>
-                              <span className="text-sm font-medium text-white">{u.username}</span>
+                              <span className="text-sm font-medium text-slate-900">{u.username}</span>
                             </div>
                           )}
                         </td>
@@ -315,7 +320,7 @@ export default function AdminUsers({ user, onLogout }) {
                           {editingId === u.id ? (
                             <input className="input-field text-xs py-1.5" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} />
                           ) : (
-                            <span className="text-sm text-slate-400">{u.email}</span>
+                            <span className="text-sm text-slate-600">{u.email}</span>
                           )}
                         </td>
                         <td className="px-5 py-4">
@@ -341,7 +346,7 @@ export default function AdminUsers({ user, onLogout }) {
                               <button onClick={handleSave} className="rounded-lg bg-emerald-500/15 p-2 text-emerald-400 hover:bg-emerald-500/25 transition">
                                 <Save size={14} />
                               </button>
-                              <button onClick={() => setEditingId(null)} className="rounded-lg bg-slate-700/50 p-2 text-slate-400 hover:bg-slate-700 transition">
+                              <button onClick={() => setEditingId(null)} className="rounded-lg bg-slate-200 p-2 text-slate-600 hover:bg-slate-300 transition">
                                 <X size={14} />
                               </button>
                             </div>

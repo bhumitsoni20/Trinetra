@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Mic, ShieldCheck, AlertTriangle, PlayCircle, LogOut, Eye } from "lucide-react";
+import { Camera, Mic, ShieldCheck, AlertTriangle, PlayCircle, LogOut } from "lucide-react";
+
+import Logo from "../assets/TRINETRA.png";
 
 export default function ExamGate({ user, onLogout }) {
   const [cameraOk, setCameraOk] = useState(false);
@@ -49,16 +51,18 @@ export default function ExamGate({ user, onLogout }) {
       <div className="ambient-grid" />
 
       {/* Top Bar */}
-      <header className="relative z-10 flex items-center justify-between border-b border-slate-800/60 px-6 py-4">
+      <header className="relative z-10 flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600">
-            <Eye size={18} className="text-white" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl">
+            <img src={Logo} alt="Trinetra logo" className="h-8 w-8 object-contain" />
           </div>
-          <span className="font-display text-lg font-bold text-white">Trinetra</span>
+          <span className="font-display text-lg font-bold text-slate-900">
+            <span className="text-[#6B2BD9]">T</span>RI<span className="text-[#6B2BD9]">N</span>ETRA
+          </span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-400">
-            Welcome, <span className="text-cyan-300 font-medium">{user.username}</span>
+          <span className="text-sm text-slate-600">
+            Welcome, <span className="text-blue-600 font-medium">{user.username}</span>
           </span>
           <button onClick={onLogout} className="btn-ghost text-xs py-1.5 px-3">
             <LogOut size={14} /> Logout
@@ -70,8 +74,8 @@ export default function ExamGate({ user, onLogout }) {
       <div className="relative z-10 flex flex-col items-center px-6 pt-16 pb-20">
         <div className="w-full max-w-lg">
           <div className="animate-fadeInUp mb-8 text-center">
-            <h1 className="font-display text-3xl font-bold text-white">Exam Pre-Check</h1>
-            <p className="mt-2 text-sm text-slate-400">
+            <h1 className="font-display text-3xl font-bold text-slate-900">Exam Pre-Check</h1>
+            <p className="mt-2 text-sm text-slate-600">
               Before entering the exam, we need to verify your camera and microphone access.
             </p>
           </div>
@@ -83,19 +87,19 @@ export default function ExamGate({ user, onLogout }) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                    cameraOk ? "bg-emerald-500/15 text-emerald-400" : "bg-slate-700/50 text-slate-400"
+                    cameraOk ? "bg-emerald-500/15 text-emerald-600" : "bg-slate-100 text-slate-600"
                   }`}>
                     <Camera size={20} />
                   </div>
                   <div>
-                    <p className="font-medium text-white">Camera Access</p>
-                    <p className="text-xs text-slate-400">Required for proctoring monitoring</p>
+                    <p className="font-medium text-slate-900">Camera Access</p>
+                    <p className="text-xs text-slate-600">Required for proctoring monitoring</p>
                   </div>
                 </div>
                 {cameraOk ? (
                   <span className="badge badge-active">✓ Granted</span>
                 ) : (
-                  <span className="badge" style={{ color: "#94a3c8", background: "rgba(148, 163, 200, 0.1)", border: "1px solid rgba(148, 163, 200, 0.2)" }}>
+                  <span className="badge" style={{ color: "#475569", background: "rgba(148, 163, 200, 0.15)", border: "1px solid rgba(148, 163, 200, 0.3)" }}>
                     Pending
                   </span>
                 )}
@@ -107,19 +111,19 @@ export default function ExamGate({ user, onLogout }) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                    micOk ? "bg-emerald-500/15 text-emerald-400" : "bg-slate-700/50 text-slate-400"
+                    micOk ? "bg-emerald-500/15 text-emerald-600" : "bg-slate-100 text-slate-600"
                   }`}>
                     <Mic size={20} />
                   </div>
                   <div>
-                    <p className="font-medium text-white">Microphone Access</p>
-                    <p className="text-xs text-slate-400">Required for audio monitoring</p>
+                    <p className="font-medium text-slate-900">Microphone Access</p>
+                    <p className="text-xs text-slate-600">Required for audio monitoring</p>
                   </div>
                 </div>
                 {micOk ? (
                   <span className="badge badge-active">✓ Granted</span>
                 ) : (
-                  <span className="badge" style={{ color: "#94a3c8", background: "rgba(148, 163, 200, 0.1)", border: "1px solid rgba(148, 163, 200, 0.2)" }}>
+                  <span className="badge" style={{ color: "#475569", background: "rgba(148, 163, 200, 0.15)", border: "1px solid rgba(148, 163, 200, 0.3)" }}>
                     Pending
                   </span>
                 )}
@@ -129,10 +133,10 @@ export default function ExamGate({ user, onLogout }) {
             {/* Rules */}
             <div className="glass-card rounded-2xl p-5">
               <div className="flex items-start gap-3">
-                <ShieldCheck size={20} className="mt-0.5 shrink-0 text-cyan-400" />
-                <div className="space-y-2 text-sm text-slate-300">
-                  <p className="font-medium text-white">Exam Rules</p>
-                  <ul className="space-y-1.5 text-slate-400">
+                <ShieldCheck size={20} className="mt-0.5 shrink-0 text-blue-600" />
+                <div className="space-y-2 text-sm text-slate-700">
+                  <p className="font-medium text-slate-900">Exam Rules</p>
+                  <ul className="space-y-1.5 text-slate-600">
                     <li>• Your webcam will be monitored throughout the exam (hidden)</li>
                     <li>• Tab switching will deduct 10 minutes from your time</li>
                     <li>• 3 tab switches will result in automatic disqualification</li>
@@ -145,7 +149,7 @@ export default function ExamGate({ user, onLogout }) {
           </div>
 
           {error && (
-            <div className="animate-fadeIn mt-4 flex items-center gap-2 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            <div className="animate-fadeIn mt-4 flex items-center gap-2 rounded-xl border border-red-400/30 bg-red-50 px-4 py-3 text-sm text-red-700">
               <AlertTriangle size={16} />
               {error}
             </div>
@@ -173,20 +177,7 @@ export default function ExamGate({ user, onLogout }) {
             {canStart && (
               <button
                 onClick={startExam}
-                className="w-full justify-center py-3.5 text-base"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  fontWeight: 700,
-                  color: "#fff",
-                  background: "linear-gradient(135deg, #10b981, #059669)",
-                  border: "1px solid rgba(16, 185, 129, 0.4)",
-                  borderRadius: "0.75rem",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 20px rgba(16, 185, 129, 0.3)",
-                  transition: "all 0.3s ease",
-                }}
+                className="btn-primary w-full justify-center py-3.5 text-base"
               >
                 <PlayCircle size={20} />
                 Start Exam
@@ -195,7 +186,7 @@ export default function ExamGate({ user, onLogout }) {
           </div>
 
           {/* Consent Notice */}
-          <p className="mt-6 text-center text-xs text-slate-500">
+          <p className="mt-6 text-center text-xs text-slate-600">
             By starting the exam, you consent to camera and microphone monitoring
             for exam integrity purposes. No continuous video is stored.
           </p>

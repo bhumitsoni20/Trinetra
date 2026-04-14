@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { Activity, Brain, Eye, Lock, Monitor, ShieldCheck, Menu, X } from "lucide-react";
 import { useState } from "react";
 
+import Logo from "../assets/TRINETRA.png";
+
 import FeatureCard from "../components/landing/FeatureCard";
 import Footer from "../components/landing/Footer";
 import HeroSection from "../components/landing/HeroSection";
@@ -10,25 +12,25 @@ import HowItWorks from "../components/landing/HowItWorks";
 const CORE_FEATURES = [
   {
     icon: Eye,
-    title: "Computer Vision Vigilance",
+    title: "Vision Monitoring",
     description:
-      "Continuously analyzes face presence and detects multiple-person anomalies in the candidate frame.",
+      "Checks face presence and flags multiple faces in the frame.",
     tone: "cyan",
     tag: "Vision",
   },
   {
     icon: Brain,
-    title: "Behavior Intelligence",
+    title: "Behavior Signals",
     description:
-      "Tracks movement and behavioral signals to surface suspicious activity with transparent risk scoring.",
+      "Tracks movement patterns and highlights unusual activity with clear risk scoring.",
     tone: "violet",
     tag: "AI Engine",
   },
   {
     icon: ShieldCheck,
-    title: "Audit-Ready Control",
+    title: "Audit-Ready Logs",
     description:
-      "Maintains metadata-only logs and role-based oversight to support institutional compliance needs.",
+      "Stores metadata-only logs and supports role-based review.",
     tone: "emerald",
     tag: "Governance",
   },
@@ -38,19 +40,19 @@ const KEY_FEATURES = [
   {
     icon: Activity,
     title: "Real-time monitoring",
-    description: "Live exam streams are evaluated continuously with low-latency event detection.",
+    description: "Analyzes live sessions continuously with fast event detection.",
     tone: "cyan",
   },
   {
     icon: Monitor,
     title: "Tab switch detection",
-    description: "Browser focus changes and exam context switches are tracked and logged immediately.",
+    description: "Tracks focus changes and logs each switch immediately.",
     tone: "violet",
   },
   {
     icon: Lock,
     title: "Privacy-first system",
-    description: "No raw video storage, only meaningful metadata and alert trails for review.",
+    description: "No raw video storage. Only metadata and alert trails for review.",
     tone: "emerald",
   },
 ];
@@ -59,7 +61,7 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-slate-950 text-slate-100">
+    <div className="relative min-h-screen overflow-x-hidden bg-white text-slate-900">
       {/* Ambient background glow */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-36 top-0 h-72 w-72 rounded-full bg-cyan-500/20 blur-[120px] sm:h-96 sm:w-96" />
@@ -69,20 +71,22 @@ export default function LandingPage() {
 
       <div className="relative z-10">
         {/* Header */}
-        <header className="border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
+        <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl">
           <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/25 bg-linear-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20">
-                <Eye size={20} className="text-white" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl">
+                <img src={Logo} alt="Trinetra logo" className="h-10 w-10 object-contain" />
               </div>
-              <span className="font-display text-xl font-semibold tracking-tight text-white">Trinetra</span>
+              <span className="font-display text-xl font-semibold tracking-tight text-slate-900">
+                <span className="text-[#6B2BD9]">T</span>RI<span className="text-[#6B2BD9]">N</span>ETRA
+              </span>
             </div>
 
             {/* Desktop nav */}
             <div className="hidden items-center gap-3 sm:flex">
               <a
                 href="#features"
-                className="rounded-lg border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5"
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
               >
                 Features
               </a>
@@ -96,7 +100,7 @@ export default function LandingPage() {
 
             {/* Mobile hamburger */}
             <button
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-slate-300 transition hover:bg-white/5 sm:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-100 sm:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -106,12 +110,12 @@ export default function LandingPage() {
 
           {/* Mobile dropdown menu */}
           {mobileMenuOpen && (
-            <div className="border-t border-white/10 bg-slate-950/95 px-4 py-4 backdrop-blur-xl sm:hidden">
+            <div className="border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur-xl sm:hidden">
               <div className="flex flex-col gap-3">
                 <a
                   href="#features"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-lg border border-white/10 px-4 py-2.5 text-center text-sm font-medium text-slate-300 transition hover:bg-white/5"
+                  className="rounded-lg border border-slate-200 px-4 py-2.5 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                 >
                   Features
                 </a>
@@ -133,12 +137,12 @@ export default function LandingPage() {
         <section id="features" className="mt-4 pb-20 sm:mt-8">
           <div className="mx-auto max-w-7xl px-6">
             <div className="mb-12 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Core Features</p>
-              <h2 className="mx-auto mt-3 max-w-3xl font-display text-3xl font-semibold text-white sm:text-4xl">
-                Production-ready exam proctoring, designed like modern SaaS.
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-900">Core Features</p>
+              <h2 className="mx-auto mt-3 max-w-3xl font-display text-3xl font-semibold text-slate-900 sm:text-4xl">
+                Reliable exam proctoring for online classrooms.
               </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-base text-slate-400">
-                Built with visual depth, strong hierarchy, and real-time intelligence to deliver trust at scale.
+              <p className="mx-auto mt-4 max-w-2xl text-base text-slate-900">
+                Clear layouts, real-time signals, and simple review tools keep oversight consistent.
               </p>
             </div>
 
@@ -163,12 +167,12 @@ export default function LandingPage() {
         <section className="mt-4 pb-20 sm:mt-8">
           <div className="mx-auto max-w-7xl px-6">
             <div className="mb-12 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Key Features</p>
-              <h2 className="mx-auto mt-3 max-w-3xl font-display text-3xl font-semibold text-white sm:text-4xl">
-                Everything needed for trustworthy online exams.
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-900">Key Features</p>
+              <h2 className="mx-auto mt-3 max-w-3xl font-display text-3xl font-semibold text-slate-900 sm:text-4xl">
+                Everything you need for secure online exams.
               </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-base text-slate-400">
-                Balanced for performance, transparency, and privacy while maintaining a premium user experience.
+              <p className="mx-auto mt-4 max-w-2xl text-base text-slate-900">
+                Balanced for speed, transparency, and privacy without extra complexity.
               </p>
             </div>
 

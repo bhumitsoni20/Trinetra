@@ -24,14 +24,14 @@ export default function HeaderBar({
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_1fr]">
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-display text-2xl font-semibold text-slate-50 sm:text-3xl">
-              Trinetra AI Invigilation
+            <h1 className="font-display text-2xl font-semibold text-slate-900 sm:text-3xl">
+              TRINETRA AI Invigilation
             </h1>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
                 monitoringActive
-                  ? "bg-cyan-500/15 text-cyan-200 animate-pulseGlow"
-                  : "bg-slate-500/15 text-slate-300"
+                  ? "bg-blue-100 text-blue-700 animate-pulseGlow"
+                  : "bg-slate-200 text-slate-700"
               }`}
             >
               <Activity size={14} />
@@ -39,35 +39,35 @@ export default function HeaderBar({
             </span>
           </div>
 
-          <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+          <p className="max-w-2xl text-sm text-slate-700 sm:text-base">
             Virtual proctoring with privacy-first AI detection for face absence, multi-face presence, and abnormal
             motion patterns.
           </p>
 
-          <div className="flex flex-wrap gap-3 text-sm text-slate-200">
-            <span className="inline-flex items-center gap-2 rounded-full bg-slate-800/70 px-3 py-1.5">
-              <ShieldCheck size={14} className="text-emerald-300" />
+          <div className="flex flex-wrap gap-3 text-sm text-slate-700">
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5">
+              <ShieldCheck size={14} className="text-emerald-600" />
               No image or video storage
             </span>
-            <span className="inline-flex items-center gap-2 rounded-full bg-slate-800/70 px-3 py-1.5">
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5">
               {socketConnected ? (
                 <>
-                  <Wifi size={14} className="text-cyan-300" />
+                  <Wifi size={14} className="text-blue-600" />
                   Realtime stream connected
                 </>
               ) : (
                 <>
-                  <WifiOff size={14} className="text-amber-300" />
+                  <WifiOff size={14} className="text-amber-600" />
                   Realtime stream reconnecting
                 </>
               )}
             </span>
           </div>
 
-          <p className="text-xs text-slate-400 sm:text-sm">{statusMessage}</p>
+          <p className="text-xs text-slate-600 sm:text-sm">{statusMessage}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-700/70 bg-slate-900/55 p-4 sm:p-5">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
           <RiskMeter score={riskScore} level={riskLevel} />
         </div>
       </div>

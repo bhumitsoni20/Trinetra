@@ -120,3 +120,9 @@ export async function fetchSessionDetail(sessionId) {
   const response = await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/`, { headers: authHeaders() });
   return parseJsonResponse(response);
 }
+
+// ---- Metrics ----
+export async function fetchAdoptionStats() {
+  const response = await fetch(`${API_BASE_URL}/api/metrics/adoption/`);
+  return parseJsonResponse(response);
+}

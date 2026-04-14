@@ -65,6 +65,11 @@ def rebuild_proctoringlog_table(apps, schema_editor):
 
         # --- Full rebuild needed ---
 
+        has_user_label = "user_label" in columns
+        has_user_id = "user_id" in columns
+        has_image = "image" in columns
+        has_session_id = "session_id" in columns
+
         # 1. Rename old table
         cursor.execute(
             "ALTER TABLE proctoring_proctoringlog RENAME TO _proctoringlog_old"
@@ -88,27 +93,46 @@ def rebuild_proctoringlog_table(apps, schema_editor):
 
         # 3. Copy data — match user_label from old user_id (varchar),
         #    and try to resolve integer user FK where possible
-        cursor.execute("""
+        if has_user_label and has_user_id:
+            user_label_expr = "COALESCE(o.user_label, CAST(o.user_id AS TEXT), '')"
+        elif has_user_label:
+            user_label_expr = "COALESCE(o.user_label, '')"
+        elif has_user_id:
+            user_label_expr = "COALESCE(CAST(o.user_id AS TEXT), '')"
+        else:
+            user_label_expr = "''"
+
+        if has_user_id:
+            user_id_expr = (
+                "CASE "
+                "WHEN typeof(o.user_id) = 'integer' THEN o.user_id "
+                "WHEN o.user_id GLOB '[0-9]*' AND CAST(o.user_id AS INTEGER) > 0 "
+                "THEN CASE "
+                "WHEN EXISTS(SELECT 1 FROM auth_user WHERE id = CAST(o.user_id AS INTEGER)) "
+                "THEN CAST(o.user_id AS INTEGER) "
+                "ELSE NULL "
+                "END "
+                "ELSE NULL "
+                "END"
+            )
+        else:
+            user_id_expr = "NULL"
+
+        image_expr = "o.image" if has_image else "NULL"
+        session_expr = "o.session_id" if has_session_id else "NULL"
+
+        cursor.execute(f"""
             INSERT INTO "proctoring_proctoringlog"
                 (id, user_label, event, risk_score, timestamp, image, session_id, user_id)
             SELECT
                 o.id,
-                COALESCE(o.user_label, CAST(o.user_id AS TEXT), ''),
+                {user_label_expr},
                 o.event,
                 o.risk_score,
                 o.timestamp,
-                o.image,
-                o.session_id,
-                CASE
-                    WHEN typeof(o.user_id) = 'integer' THEN o.user_id
-                    WHEN o.user_id GLOB '[0-9]*' AND CAST(o.user_id AS INTEGER) > 0
-                        THEN CASE
-                            WHEN EXISTS(SELECT 1 FROM auth_user WHERE id = CAST(o.user_id AS INTEGER))
-                            THEN CAST(o.user_id AS INTEGER)
-                            ELSE NULL
-                        END
-                    ELSE NULL
-                END
+                {image_expr},
+                {session_expr},
+                {user_id_expr}
             FROM _proctoringlog_old o
         """)
 
