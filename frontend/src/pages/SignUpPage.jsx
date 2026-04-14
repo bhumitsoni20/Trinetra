@@ -1,70 +1,44 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, Mail, Lock, LogIn } from "lucide-react";
+import { Eye, Mail, Lock, UserPlus } from "lucide-react";
 
-import { submitAuthToken, loginUser } from "../services/api";
+import { submitAuthToken } from "../services/api";
 import { auth, googleProvider } from "../services/firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification } from "firebase/auth";
 
-export default function LoginPage({ onLogin }) {
+export default function SignUpPage({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleEmailLogin = async (e) => {
+  const handleEmailSignUp = async (e) => {
     e.preventDefault();
     setError("");
+    setMessage("");
     setLoading(true);
 
     try {
-      let idToken = null;
-      let userData = null;
-
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        
-        // Enforce Email Verification Rule
-        if (!userCredential.user.emailVerified) {
-          throw new Error("Please verify your email before logging in.");
-        }
-
-        idToken = await userCredential.user.getIdToken();
-      } catch (fbError) {
-        // If Firebase fails (e.g., they reset the password via OTP which only updated Django database)
-        // We will fallback to logging them in directly to Django using the email/password natively!
-        if (fbError.message.includes("verify your email")) {
-             throw fbError; // Don't bypass email verification limits
-        }
-        console.warn("Firebase Auth failed, attempting direct Backend DB login...");
-      }
-
-      if (idToken) {
-           const res = await submitAuthToken("/api/auth/login/", idToken);
-           userData = res.user;
-      } else {
-           // Fallback to Django Password DB
-           const res = await loginUser(email, password);
-           userData = res.user;
-      }
-
-      onLogin(userData);
-
-      if (userData.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/exam-gate");
-      }
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Send verification email immediately
+      await sendEmailVerification(userCredential.user);
+      setMessage("Verification email sent! Please check your inbox before logging in.");
+      
+      // We don't automatically log them in because they need to verify first
+      // But we can clear the form
+      setEmail("");
+      setPassword("");
     } catch (err) {
-      setError(err.message || "Authentication failed.");
+      setError(err.message || "Failed to create account.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignUp = async () => {
     setError("");
     setLoading(true);
     try {
@@ -89,7 +63,7 @@ export default function LoginPage({ onLogin }) {
         navigate("/exam-gate");
       }
     } catch (err) {
-      setError(err.message || "Google Authentication failed.");
+      setError(err.message || "Google Sign-Up failed.");
     } finally {
       setLoading(false);
     }
@@ -103,14 +77,14 @@ export default function LoginPage({ onLogin }) {
       <div className="relative z-10 w-full max-w-md">
         <div className="animate-fadeInUp mb-8 flex flex-col items-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25">
-            <Eye size={28} className="text-white" />
+            <UserPlus size={28} className="text-white" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-white">Sign In</h1>
-          <p className="mt-1 text-sm text-slate-400">Welcome to Trinetra Proctoring</p>
+          <h1 className="font-display text-2xl font-bold text-white">Create an Account</h1>
+          <p className="mt-1 text-sm text-slate-400">Join Trinetra Proctoring today</p>
         </div>
 
         <div className="glass-card animate-fadeInUp stagger-1 rounded-2xl p-8 backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl">
-          <form onSubmit={handleEmailLogin} className="space-y-5">
+          <form onSubmit={handleEmailSignUp} className="space-y-5">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-slate-400">Email Address</label>
               <div className="relative">
@@ -127,12 +101,7 @@ export default function LoginPage({ onLogin }) {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-medium text-slate-400">Password</label>
-                  <Link to="/forgot-password" className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
-                      Forgot Password?
-                  </Link>
-              </div>
+              <label className="mb-1.5 block text-xs font-medium text-slate-400">Password</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
@@ -145,11 +114,18 @@ export default function LoginPage({ onLogin }) {
                   minLength={6}
                 />
               </div>
+              <p className="mt-1.5 text-[10px] text-slate-500">Must be at least 6 characters long.</p>
             </div>
 
             {error ? (
               <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300 transition-all">
                 {error}
+              </div>
+            ) : null}
+
+            {message ? (
+              <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-300 transition-all">
+                {message}
               </div>
             ) : null}
 
@@ -162,7 +138,7 @@ export default function LoginPage({ onLogin }) {
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               ) : (
                 <>
-                  <LogIn size={16} className="mr-2" /> Access Dashboard
+                  <UserPlus size={16} className="mr-2" /> Sign Up
                 </>
               )}
             </button>
@@ -175,18 +151,18 @@ export default function LoginPage({ onLogin }) {
           </div>
 
           <button
-              onClick={handleGoogleLogin}
+              onClick={handleGoogleSignUp}
               disabled={loading}
               className="mt-6 w-full flex items-center justify-center py-3 bg-white hover:bg-slate-50 text-slate-800 rounded-lg transition-colors font-medium cursor-pointer"
           >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 mr-3" />
-              Sign in with Google
+              Sign up with Google
           </button>
           
           <p className="mt-5 text-center text-sm text-slate-400">
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-              Sign Up
+            Already have an account?{" "}
+            <Link to="/login" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+              Sign In
             </Link>
           </p>
         </div>

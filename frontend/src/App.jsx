@@ -8,6 +8,12 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
 import AdminLogs from "./pages/AdminLogs";
 import LandingPage from "./pages/LandingPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyOTP from "./pages/VerifyOTP";
+import ResetPassword from "./pages/ResetPassword";
+import SignUpPage from "./pages/SignUpPage";
+
+
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -39,9 +45,18 @@ function App() {
         user ? <Navigate to={isAdmin ? "/admin" : "/exam-gate"} replace /> :
         <LoginPage onLogin={handleLogin} />
       } />
+      <Route path="/signup" element={
+        user ? <Navigate to={isAdmin ? "/admin" : "/exam-gate"} replace /> :
+        <SignUpPage onLogin={handleLogin} />
+      } />
       <Route path="/admin-login" element={
         <Navigate to="/login" replace />
       } />
+      
+      {/* Auth Flows */}
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/verify-otp" element={<VerifyOTP />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Student Routes */}
       <Route path="/exam-gate" element={

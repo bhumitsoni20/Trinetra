@@ -20,10 +20,46 @@ function authHeaders() {
 
 // ---- Auth ----
 export async function loginUser(email, password) {
-  const response = await fetch(`${API_BASE_URL}/api/login/`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
+  });
+  return parseJsonResponse(response);
+}
+
+export async function submitAuthToken(endpoint, idToken) {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id_token: idToken }),
+  });
+  return parseJsonResponse(response);
+}
+
+export async function sendOTP(email) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/send-otp/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  return parseJsonResponse(response);
+}
+
+export async function verifyOTP(email, otp) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/verify-otp/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp }),
+  });
+  return parseJsonResponse(response);
+}
+
+export async function resetPasswordAPI(email, otp, newPassword) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/reset-password/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp, password: newPassword }),
   });
   return parseJsonResponse(response);
 }
