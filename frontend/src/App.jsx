@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import StudentLogin from "./pages/StudentLogin";
-import AdminLogin from "./pages/AdminLogin";
+import LoginPage from "./pages/LoginPage";
 import ExamGate from "./pages/ExamGate";
 import ExamRoom from "./pages/ExamRoom";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -38,11 +37,10 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={
         user ? <Navigate to={isAdmin ? "/admin" : "/exam-gate"} replace /> :
-        <StudentLogin onLogin={handleLogin} />
+        <LoginPage onLogin={handleLogin} />
       } />
       <Route path="/admin-login" element={
-        user ? <Navigate to={isAdmin ? "/admin" : "/exam-gate"} replace /> :
-        <AdminLogin onLogin={handleLogin} />
+        <Navigate to="/login" replace />
       } />
 
       {/* Student Routes */}

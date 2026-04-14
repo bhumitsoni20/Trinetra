@@ -72,7 +72,7 @@ export default function LandingPage() {
         <header className="border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
           <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/25 bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/25 bg-linear-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20">
                 <Eye size={20} className="text-white" />
               </div>
               <span className="font-display text-xl font-semibold tracking-tight text-white">Trinetra</span>
@@ -87,10 +87,10 @@ export default function LandingPage() {
                 Features
               </a>
               <Link
-                to="/admin-login"
-                className="inline-flex items-center gap-2 rounded-lg border border-cyan-300/30 bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition duration-300 hover:scale-[1.02]"
+                to="/login"
+                className="inline-flex items-center gap-2 rounded-lg border border-cyan-300/30 bg-linear-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition duration-300 hover:scale-[1.02]"
               >
-                Admin Login
+                Login
               </Link>
             </div>
 
@@ -116,11 +116,11 @@ export default function LandingPage() {
                   Features
                 </a>
                 <Link
-                  to="/admin-login"
+                  to="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-cyan-300/30 bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-cyan-300/30 bg-linear-to-r from-cyan-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20"
                 >
-                  Admin Login
+                  Login
                 </Link>
               </div>
             </div>

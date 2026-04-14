@@ -1,5 +1,4 @@
-import { ArrowRight, PlayCircle, ShieldCheck, Activity, Eye } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ShieldCheck, Activity, Eye } from "lucide-react";
 
 const HERO_METRICS = [
   { label: "Realtime AI Checks", value: "24/7", icon: Activity },
@@ -20,7 +19,7 @@ export default function HeroSection() {
 
             <h1 className="mt-6 font-display text-3xl font-bold leading-[1.08] text-white sm:text-4xl md:text-5xl lg:text-6xl">
               Upgrade Exam Integrity with
-              <span className="block bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent">
+              <span className="block bg-linear-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent">
                 AI Intelligence
               </span>
             </h1>
@@ -29,24 +28,6 @@ export default function HeroSection() {
               Monitor candidates in realtime, detect suspicious behavior instantly, and maintain privacy-first logs in a
               polished invigilation workflow built for modern institutions.
             </p>
-
-            <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <Link
-                to="/admin-login"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-300/30 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition duration-300 hover:scale-[1.02] hover:shadow-blue-400/35"
-              >
-                Access Admin Dashboard
-                <ArrowRight size={16} />
-              </Link>
-
-              <a
-                href="#how-it-works"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-200 backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:bg-white/10"
-              >
-                <PlayCircle size={16} />
-                See How It Works
-              </a>
-            </div>
 
             <div className="mt-8 grid grid-cols-3 gap-3">
               {HERO_METRICS.map((item) => (
@@ -64,7 +45,7 @@ export default function HeroSection() {
 
           {/* Right Column - System Status Card */}
           <div className="relative flex justify-center lg:justify-end">
-            <div className="pointer-events-none absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-cyan-500/25 via-blue-500/10 to-violet-500/20 blur-3xl" />
+            <div className="pointer-events-none absolute -inset-4 rounded-4xl bg-linear-to-br from-cyan-500/25 via-blue-500/10 to-violet-500/20 blur-3xl" />
 
             <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-slate-950/50 backdrop-blur-xl">
               <div className="mb-6 flex items-center justify-between">
@@ -84,14 +65,14 @@ export default function HeroSection() {
                   { label: "Alert Pipeline Latency", value: "120 ms", width: "82%", gradient: "from-violet-400 to-indigo-500" },
                   { label: "Exam Session Integrity", value: "High", width: "91%", gradient: "from-emerald-400 to-cyan-500" },
                 ].map((bar) => (
-                  <div key={bar.label} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+                  <div key={bar.label} className="rounded-xl border border-white/10 bg-white/4 p-4">
                     <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
                       <span>{bar.label}</span>
                       <span>{bar.value}</span>
                     </div>
                     <div className="h-2 rounded-full bg-slate-800">
                       <div
-                        className={`h-full rounded-full bg-gradient-to-r ${bar.gradient}`}
+                        className={`h-full rounded-full bg-linear-to-r ${bar.gradient}`}
                         style={{ width: bar.width }}
                       />
                     </div>

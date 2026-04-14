@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck, Mail, Lock, LogIn } from "lucide-react";
+import { Eye, Mail, Lock, LogIn } from "lucide-react";
 
 import { loginUser } from "../services/api";
 
@@ -19,13 +19,13 @@ export default function LoginPage({ onLogin }) {
 
     try {
       const user = await loginUser(email, password);
-      if (user.role !== "admin") {
-        setError("Access denied. Please login with admin credentials only.");
-        return;
-      }
-
       onLogin(user);
-      navigate("/admin");
+
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/exam-gate");
+      }
     } catch (err) {
       setError(err.message || "Authentication failed.");
     } finally {
@@ -40,23 +40,23 @@ export default function LoginPage({ onLogin }) {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="animate-fadeInUp mb-8 flex flex-col items-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25">
-            <ShieldCheck size={28} className="text-white" />
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25">
+            <Eye size={28} className="text-white" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-white">Admin Sign In</h1>
-          <p className="mt-1 text-sm text-slate-400">Secure access for admin credentials only.</p>
+          <h1 className="font-display text-2xl font-bold text-white">Sign In</h1>
+          <p className="mt-1 text-sm text-slate-400">Use your account credentials to continue.</p>
         </div>
 
         <div className="glass-card animate-fadeInUp stagger-1 rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-400">Admin Email Address</label>
+              <label className="mb-1.5 block text-xs font-medium text-slate-400">Email Address</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="email"
                   className="input-field pl-10"
-                  placeholder="admin@trinetra.edu"
+                  placeholder="name@domain.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -102,7 +102,7 @@ export default function LoginPage({ onLogin }) {
           </form>
 
           <p className="mt-5 text-center text-sm text-slate-400">
-            Admin accounts are managed by the system administrator.
+            Admin and student accounts use the same login form.
           </p>
         </div>
 
