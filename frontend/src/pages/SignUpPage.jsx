@@ -87,11 +87,13 @@ export default function SignUpPage({ onLogin }) {
           <form onSubmit={handleEmailSignUp} className="space-y-5">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-slate-400">Email Address</label>
-              <div className="relative">
-                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-100">
+                  <Mail size={16} className="text-slate-600" />
+                </span>
                 <input
                   type="email"
-                  className="input-field pl-10 w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500/50 outline-none"
+                  className="input-field w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500/50 outline-none"
                   placeholder="name@domain.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -102,11 +104,13 @@ export default function SignUpPage({ onLogin }) {
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-slate-400">Password</label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-100">
+                  <Lock size={16} className="text-slate-600" />
+                </span>
                 <input
                   type="password"
-                  className="input-field pl-10 w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500/50 outline-none"
+                  className="input-field w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-cyan-500/50 outline-none"
                   placeholder="........"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Monitor, Users, FileText, LogOut, Edit3, Trash2, Save, X,
-  Search, UserPlus, Menu
+  Search, UserPlus, Menu, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { fetchUsers, updateUser, deleteUser, registerUser } from "../services/api";
 import Logo from "../assets/TRINETRA.png";
@@ -18,6 +18,10 @@ export default function AdminUsers({ user, onLogout }) {
   const [newUser, setNewUser] = useState({ username: "", email: "", password: "", first_name: "", last_name: "", role: "student" });
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const sidebarWidthClass = sidebarCollapsed ? "w-[240px] lg:w-[84px]" : "w-[240px]";
+  const mainMarginClass = sidebarCollapsed ? "lg:ml-[84px]" : "lg:ml-[240px]";
 
   const loadUsers = async () => {
     try {
@@ -94,52 +98,81 @@ export default function AdminUsers({ user, onLogout }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-slate-200 bg-white/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-5">
-          <div className="flex items-center gap-3">
+      <aside className={`fixed left-0 top-0 z-50 flex h-full ${sidebarWidthClass} flex-col border-r border-slate-200 bg-white/95 backdrop-blur-xl transition-all duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className={`flex items-center justify-between border-b border-slate-200 py-5 ${sidebarCollapsed ? "px-3" : "px-5"}`}>
+          <div className={`flex items-center gap-3 ${sidebarCollapsed ? "lg:justify-center" : ""}`}>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl">
               <img src={Logo} alt="Trinetra logo" className="h-8 w-8 object-contain" />
             </div>
-            <div>
+            <div className={sidebarCollapsed ? "lg:hidden" : ""}>
               <p className="font-display text-base font-bold text-slate-900">
                 <span className="text-[#6B2BD9]">T</span>RI<span className="text-[#6B2BD9]">N</span>ETRA
               </p>
               <p className="text-xs text-slate-600">Admin Panel</p>
             </div>
           </div>
-          <button
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close sidebar"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="hidden h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:flex"
+              onClick={() => setSidebarCollapsed((prev) => !prev)}
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+            <button
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Close sidebar"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
-          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" onClick={() => setSidebarOpen(false)}>
+          <Link
+            to="/admin"
+            title="Dashboard"
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
+            onClick={() => setSidebarOpen(false)}
+          >
             <Monitor size={18} />
-            Dashboard
+            <span className={sidebarCollapsed ? "lg:hidden" : ""}>Dashboard</span>
           </Link>
-          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2.5 text-base font-medium text-slate-900" onClick={() => setSidebarOpen(false)}>
+          <Link
+            to="/admin/users"
+            title="User Management"
+            className={`flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2.5 text-base font-medium text-slate-900 ${sidebarCollapsed ? "lg:justify-center" : ""}`}
+            onClick={() => setSidebarOpen(false)}
+          >
             <Users size={18} className="text-blue-600" />
-            User Management
+            <span className={sidebarCollapsed ? "lg:hidden" : ""}>User Management</span>
           </Link>
-          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" onClick={() => setSidebarOpen(false)}>
+          <Link
+            to="/admin/logs"
+            title="Alert Logs"
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
+            onClick={() => setSidebarOpen(false)}
+          >
             <FileText size={18} />
-            Alert Logs
+            <span className={sidebarCollapsed ? "lg:hidden" : ""}>Alert Logs</span>
           </Link>
         </nav>
 
         <div className="border-t border-slate-200 px-3 py-4">
-          <button onClick={() => { onLogout(); navigate("/"); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-600 hover:bg-red-500/10 hover:text-red-600 transition">
-            <LogOut size={14} /> Sign Out
+          <button
+            onClick={() => { onLogout(); navigate("/"); }}
+            title="Sign Out"
+            className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-600 hover:bg-red-500/10 hover:text-red-600 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
+          >
+            <LogOut size={14} />
+            <span className={sidebarCollapsed ? "lg:hidden" : ""}>Sign Out</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="relative z-10 lg:ml-[240px]">
+      <main className={`relative z-10 ${mainMarginClass}`}>
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/90 backdrop-blur-xl px-4 py-3 sm:px-8 sm:py-4">
           <div className="flex items-center gap-3">
             <button

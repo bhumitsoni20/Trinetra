@@ -125,24 +125,20 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border: 1px solid var(--border-default);
   background: var(--bg-card);
   backdrop-filter: blur(20px) saturate(1.2);
-  box-shadow:
-    0 4px 30px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  box-shadow: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
   border-color: rgba(99, 118, 163, 0.28);
-  box-shadow:
-    0 8px 40px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  box-shadow: none;
 }
 
 .glass-card-static {
   border: 1px solid var(--border-default);
   background: var(--bg-card);
   backdrop-filter: blur(20px) saturate(1.2);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
 }
 
 /* === Buttons === */
