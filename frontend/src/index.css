@@ -1,1 +1,98 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
+
 @import "tailwindcss";
+
+:root {
+	--bg-start: #061022;
+	--bg-end: #03060d;
+	--card-bg: rgba(15, 24, 40, 0.55);
+	--card-border: rgba(120, 144, 178, 0.22);
+	--text-main: #eff6ff;
+	--text-muted: #9db0cc;
+	--safe: #16a34a;
+	--warning: #f59e0b;
+	--danger: #ef4444;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	font-family: "Sora", system-ui, sans-serif;
+	color: var(--text-main);
+	background:
+		radial-gradient(1200px 500px at 0% -10%, rgba(14, 165, 233, 0.22), transparent 70%),
+		radial-gradient(900px 500px at 110% 10%, rgba(20, 184, 166, 0.14), transparent 60%),
+		linear-gradient(140deg, var(--bg-start), var(--bg-end));
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+	font-family: "Space Grotesk", "Sora", system-ui, sans-serif;
+}
+
+.ambient-grid {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background-image:
+		linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+	background-size: 48px 48px;
+	mask-image: radial-gradient(circle at center, black, transparent 85%);
+}
+
+.glass-card {
+	border: 1px solid var(--card-border);
+	background: var(--card-bg);
+	backdrop-filter: blur(18px);
+	box-shadow: 0 20px 45px rgba(2, 6, 23, 0.55);
+}
+
+@keyframes fade-in-up {
+	0% {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes pulse-glow {
+	0%,
+	100% {
+		box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.35);
+	}
+	50% {
+		box-shadow: 0 0 0 10px rgba(56, 189, 248, 0);
+	}
+}
+
+.animate-fade-in-up {
+	animation: fade-in-up 0.6s ease-out both;
+}
+
+.animate-pulseGlow {
+	animation: pulse-glow 2.6s ease-in-out infinite;
+}
+
+::-webkit-scrollbar {
+	width: 9px;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(8, 15, 28, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+	border-radius: 100px;
+	background: linear-gradient(180deg, rgba(56, 189, 248, 0.7), rgba(20, 184, 166, 0.6));
+}
