@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Monitor, Users, FileText, FilePlus, LogOut, AlertTriangle, Clock,
-  Filter, Image, Menu, X, ChevronLeft, ChevronRight
+  Filter, Image, Menu, X, ChevronLeft, ChevronRight, View
 } from "lucide-react";
 import { fetchLogs } from "../services/api";
 import useProctoringSocket from "../hooks/useProctoringSocket";
@@ -137,6 +137,15 @@ export default function AdminLogs({ user, onLogout }) {
           >
             <Monitor size={18} />
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>Dashboard</span>
+          </Link>
+          <Link
+            to="/admin/live"
+            title="Live Monitoring"
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <View size={18} />
+            <span className={sidebarCollapsed ? "lg:hidden" : ""}>Live Monitoring</span>
           </Link>
           <Link
             to="/admin/users"

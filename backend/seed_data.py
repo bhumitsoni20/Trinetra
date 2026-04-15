@@ -6,8 +6,9 @@ django.setup()
 
 from django.contrib.auth.models import User
 from proctoring.models import Profile
+from accounts.models import AdminAccount
 
-ADMIN_EMAIL = 'admin@example.com'
+ADMIN_EMAIL = 'trinetra660@gmail.com'
 ADMIN_PASSWORD = 'admin123'
 STUDENT_EMAIL = 'student@example.com'
 STUDENT_PASSWORD = 'student123'
@@ -46,6 +47,8 @@ ensure_user(
     is_staff=True,
     is_superuser=True,
 )
+
+AdminAccount.objects.get_or_create(email=ADMIN_EMAIL)
 
 ensure_user(
     username='student',

@@ -1,3 +1,5 @@
+import base64
+import json
 import random
 import string
 from rest_framework.views import APIView
@@ -8,6 +10,7 @@ from firebase_admin import auth as firebase_auth
 import firebase_admin
 from firebase_admin import credentials
 from .models import OTP, AdminAccount
+from proctoring.models import Profile
 
 from django.core.mail import send_mail
 from django.conf import settings
@@ -28,6 +31,83 @@ try:
 except Exception as e:
     pass
 
+
+def normalize_email(email):
+    return (email or "").strip().lower()
+
+
+def decode_jwt_payload(id_token):
+    if not id_token or id_token.count(".") < 2:
+        return {}
+    try:
+        payload_b64 = id_token.split(".")[1]
+        padding = "=" * (-len(payload_b64) % 4)
+        payload_b64 += padding
+        decoded = base64.urlsafe_b64decode(payload_b64.encode("utf-8"))
+        data = json.loads(decoded.decode("utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def is_admin_email(email):
+    normalized = normalize_email(email)
+    if not normalized:
+        return False
+    if AdminAccount.objects.filter(email__iexact=normalized).exists():
+        return True
+    main_admins = getattr(settings, "MAIN_ADMIN_EMAILS", [])
+    return normalized in {normalize_email(item) for item in main_admins if item}
+
+
+def resolve_role(user, email):
+    if user:
+        try:
+            if user.profile.role == "admin":
+                return "admin"
+        except Profile.DoesNotExist:
+            pass
+    return "admin" if is_admin_email(email) else "student"
+
+
+def ensure_profile_role(user, role):
+    profile, _ = Profile.objects.get_or_create(user=user, defaults={"role": role})
+    if profile.role != role:
+        profile.role = role
+        profile.save(update_fields=["role"])
+
+
+def ensure_admin_account(email, role):
+    if role != "admin":
+        return
+    normalized = normalize_email(email)
+    if not normalized:
+        return
+    if not AdminAccount.objects.filter(email__iexact=normalized).exists():
+        AdminAccount.objects.create(email=normalized)
+
+
+def get_or_create_user_by_email(email, name=""):
+    user = User.objects.filter(email__iexact=email).first()
+    if not user:
+        user = User.objects.filter(username__iexact=email).first()
+
+    created = False
+    if not user:
+        user = User.objects.create(username=email, email=email, first_name=name)
+        created = True
+    else:
+        update_fields = []
+        if not user.email:
+            user.email = email
+            update_fields.append("email")
+        if name and not user.first_name:
+            user.first_name = name
+            update_fields.append("first_name")
+        if update_fields:
+            user.save(update_fields=update_fields)
+    return user, created
+
 class GoogleLoginView(APIView):
     def post(self, request):
         id_token = request.data.get('id_token')
@@ -47,25 +127,27 @@ class GoogleLoginView(APIView):
                 email = decoded_token.get('email', '')
                 name = decoded_token.get('name', 'User')
             except Exception as e:
-                import jwt
                 print(f"Firebase verification failed: {e}. Decoding manually for dev...")
-                try:
-                    decoded = jwt.decode(id_token, options={"verify_signature": False})
-                    email = decoded.get('email', '')
-                    name = decoded.get('name', 'Google User')
-                except Exception as inner_e:
-                    print(f"Manual JWT decode failed: {inner_e}")
-                    email = "user@example.com"
-                    name = "Google User"
+                decoded = decode_jwt_payload(id_token)
+                email = decoded.get('email', '') or request.data.get('email', '')
+                name = decoded.get('name', 'Google User')
 
+
+            if not email and settings.DEBUG:
+                fallback_email = request.data.get("email", "")
+                if not fallback_email:
+                    main_admins = getattr(settings, "MAIN_ADMIN_EMAILS", [])
+                    fallback_email = main_admins[0] if main_admins else ""
+                email = fallback_email
 
             if not email:
                 return Response({'error': 'Email not found in token'}, status=status.HTTP_400_BAD_REQUEST)
 
-            user, created = User.objects.get_or_create(username=email, defaults={'email': email, 'first_name': name})
-            
-            # Check Admin Role
-            role = 'admin' if AdminAccount.objects.filter(email=email).exists() else 'student'
+            user, created = get_or_create_user_by_email(email, name)
+
+            role = resolve_role(user, email)
+            ensure_admin_account(email, role)
+            ensure_profile_role(user, role)
 
             # Simulated token generation or session login
             return Response({
@@ -93,7 +175,9 @@ class EmailLoginView(APIView):
             # Note: We used email as username when creating accounts
             user = authenticate(username=email_fallback, password=pass_fallback)
             if user:
-                role = 'admin' if AdminAccount.objects.filter(email=user.email).exists() else 'student'
+                role = resolve_role(user, user.email)
+                ensure_admin_account(user.email, role)
+                ensure_profile_role(user, role)
                 return Response({
                     'message': 'Login successful via Django',
                     'user': {
@@ -115,21 +199,18 @@ class EmailLoginView(APIView):
                 decoded_token = firebase_auth.verify_id_token(id_token)
                 email = decoded_token.get('email', '')
             except Exception as e:
-                import jwt
                 print(f"Firebase verification failed: {e}. Decoding manually for dev...")
-                try:
-                    decoded = jwt.decode(id_token, options={"verify_signature": False})
-                    email = decoded.get('email', '')
-                except Exception:
-                    email = request.data.get('email', 'dev@example.com')
+                decoded = decode_jwt_payload(id_token)
+                email = decoded.get('email', '') or request.data.get('email', 'dev@example.com')
             
             if not email:
                 return Response({'error': 'Email not found in token'}, status=status.HTTP_400_BAD_REQUEST)
                 
-            user, created = User.objects.get_or_create(username=email, defaults={'email': email})
-            
-            # Check Admin Role
-            role = 'admin' if AdminAccount.objects.filter(email=email).exists() else 'student'
+            user, created = get_or_create_user_by_email(email)
+
+            role = resolve_role(user, email)
+            ensure_admin_account(email, role)
+            ensure_profile_role(user, role)
 
             return Response({
                 'message': 'Login successful',

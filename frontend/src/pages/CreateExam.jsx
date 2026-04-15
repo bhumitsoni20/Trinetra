@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Plus,
   Trash2,
-  Save
+  Save,
+  View
 } from "lucide-react";
 import Logo from "../assets/TRINETRA.png";
 import { createExam } from "../services/api";
@@ -275,6 +276,17 @@ export default function CreateExam({ user, onLogout }) {
           >
             <Monitor size={18} />
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>Dashboard</span>
+          </Link>
+          <Link
+            to="/admin/live"
+            title="Live Monitoring"
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${
+              sidebarCollapsed ? "lg:justify-center" : ""
+            }`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <View size={18} />
+            <span className={sidebarCollapsed ? "lg:hidden" : ""}>Live Monitoring</span>
           </Link>
           <Link
             to="/admin/users"

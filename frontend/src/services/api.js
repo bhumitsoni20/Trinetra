@@ -101,18 +101,33 @@ export async function submitExam(sessionId, answers) {
   return parseJsonResponse(response);
 }
 
-export async function reportTabSwitch(sessionId, userId) {
+export async function reportTabSwitch(sessionId, userId, event) {
+  const payload = { session_id: sessionId, user_id: userId };
+  if (event) payload.event = event;
   const response = await fetch(`${API_BASE_URL}/api/tab-switch/`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ session_id: sessionId, user_id: userId }),
+    body: JSON.stringify(payload),
   });
   return parseJsonResponse(response);
+}
+
+export async function reportViolation(sessionId, userId, event) {
+  return reportTabSwitch(sessionId, userId, event);
 }
 
 // ---- Detection ----
 export async function postDetectionFrame(payload) {
   const response = await fetch(`${API_BASE_URL}/api/detect/`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return parseJsonResponse(response);
+}
+
+export async function uploadFrame(payload) {
+  const response = await fetch(`${API_BASE_URL}/api/frames/upload/`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(payload),
@@ -169,5 +184,47 @@ export async function fetchSessionDetail(sessionId) {
 // ---- Metrics ----
 export async function fetchAdoptionStats() {
   const response = await fetch(`${API_BASE_URL}/api/metrics/adoption/`);
+  return parseJsonResponse(response);
+}
+
+// ---- Live Monitoring ----
+export function getFrameUrl(value) {
+  if (value === null || value === undefined) return "";
+  const raw = String(value);
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  if (/^\d+$/.test(raw)) return `${API_BASE_URL}/api/frames/${raw}/`;
+  if (raw.startsWith("/")) return `${API_BASE_URL}${raw}`;
+  return `${API_BASE_URL}/${raw}`;
+}
+
+export async function postWebRTCOffer(sessionId, sdp) {
+  const response = await fetch(`${API_BASE_URL}/api/webrtc/offer/${sessionId}/`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ sdp }),
+  });
+  return parseJsonResponse(response);
+}
+
+export async function getWebRTCAnswer(sessionId) {
+  const response = await fetch(`${API_BASE_URL}/api/webrtc/answer/${sessionId}/`, {
+    headers: authHeaders(),
+  });
+  return parseJsonResponse(response);
+}
+
+export async function getWebRTCOffer(sessionId) {
+  const response = await fetch(`${API_BASE_URL}/api/webrtc/offer/${sessionId}/`, {
+    headers: authHeaders(),
+  });
+  return parseJsonResponse(response);
+}
+
+export async function postWebRTCAnswer(sessionId, sdp) {
+  const response = await fetch(`${API_BASE_URL}/api/webrtc/answer/${sessionId}/`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ sdp }),
+  });
   return parseJsonResponse(response);
 }

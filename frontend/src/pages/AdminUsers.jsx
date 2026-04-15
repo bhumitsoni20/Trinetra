@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Monitor, Users, FileText, FilePlus, LogOut, Edit3, Trash2, Save, X,
-  Search, UserPlus, Menu, ChevronLeft, ChevronRight
+  Search, UserPlus, Menu, ChevronLeft, ChevronRight, View
 } from "lucide-react";
 import { fetchUsers, updateUser, deleteUser, registerUser } from "../services/api";
 import Logo from "../assets/TRINETRA.png";
@@ -138,6 +138,15 @@ export default function AdminUsers({ user, onLogout }) {
           >
             <Monitor size={18} />
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>Dashboard</span>
+          </Link>
+          <Link
+            to="/admin/live"
+            title="Live Monitoring"
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <View size={18} />
+            <span className={sidebarCollapsed ? "lg:hidden" : ""}>Live Monitoring</span>
           </Link>
           <Link
             to="/admin/users"

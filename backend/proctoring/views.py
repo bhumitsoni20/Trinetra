@@ -1,6 +1,8 @@
 import base64
 import binascii
 import io
+import threading
+import time
 import uuid
 
 import cv2
@@ -20,6 +22,8 @@ from rest_framework.views import APIView
 from .consumers import ALERT_GROUP_NAME
 from .detector import EVENT_RISK_SCORES, detect_suspicious_behavior
 from .models import Exam, ExamSession, ProctoringLog, Profile
+from .authentication import UserHeaderAuthentication
+from .permissions import IsAdminUser, IsAdminOrExaminer
 from .serializers import (
     ExamSessionSerializer,
     ProctoringLogSerializer,
@@ -28,6 +32,32 @@ from .serializers import (
     UserUpdateSerializer,
 )
 from .socketio_server import sio
+
+
+# ---------- In-Memory Live Frame Store ----------
+# Stores the latest webcam JPEG bytes per session for near-live admin monitoring.
+# Format: { session_id: { "frame": <bytes>, "timestamp": <float> } }
+_live_frames = {}
+_live_frames_lock = threading.Lock()
+FRAME_MAX_AGE_SECONDS = 30  # Discard frames older than this
+
+
+def store_live_frame(session_id: int, jpeg_bytes: bytes) -> None:
+    """Store the latest webcam frame for a session."""
+    with _live_frames_lock:
+        _live_frames[session_id] = {
+            "frame": jpeg_bytes,
+            "timestamp": time.time(),
+        }
+
+
+def get_live_frame(session_id: int):
+    """Retrieve the latest webcam frame for a session, or None if stale/missing."""
+    with _live_frames_lock:
+        data = _live_frames.get(session_id)
+    if data and (time.time() - data["timestamp"]) < FRAME_MAX_AGE_SECONDS:
+        return data["frame"]
+    return None
 
 
 # ---------- helpers ----------
@@ -497,6 +527,27 @@ class SubmitExamAPIView(APIView):
         })
 
 
+class CreateExamAPIView(APIView):
+    authentication_classes = [UserHeaderAuthentication]
+    permission_classes = [IsAdminOrExaminer]
+    
+    def post(self, request):
+        user = request.user
+        subject = request.data.get("subject")
+        
+        try:
+            profile = user.profile
+        except Profile.DoesNotExist:
+            return Response({"detail": "Access Denied"}, status=status.HTTP_403_FORBIDDEN)
+            
+        if profile.role == 'examiner':
+            if profile.subject != subject:
+                return Response({"detail": f"Access Denied. You can only create exams for your assigned subject ({profile.subject})."}, status=status.HTTP_403_FORBIDDEN)
+                
+        # Mocking the creation of the exam 
+        return Response({"message": f"Exam for {subject} created successfully"}, status=status.HTTP_201_CREATED)
+
+
 class TabSwitchAPIView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -504,6 +555,7 @@ class TabSwitchAPIView(APIView):
     def post(self, request):
         session_id = request.data.get("session_id")
         user_id = request.data.get("user_id")
+        event_type = request.data.get("event", "Tab Switch")
 
         try:
             session = ExamSession.objects.get(id=session_id)
@@ -528,11 +580,13 @@ class TabSwitchAPIView(APIView):
 
         # Log the violation
         user = session.user
+        risk_score = 5 if "External Application" in event_type else 4
+        
         log = ProctoringLog.objects.create(
             user=user,
             user_label=user.username,
-            event="Tab Switch",
-            risk_score=4,
+            event=event_type,
+            risk_score=risk_score,
             session=session,
         )
 
@@ -540,8 +594,8 @@ class TabSwitchAPIView(APIView):
         payload = {
             "user_id": user.username,
             "email": user.email,
-            "event": "Tab Switch",
-            "risk_score": 4,
+            "event": event_type,
+            "risk_score": risk_score,
             "timestamp": log.timestamp.isoformat(),
             "tab_switch_count": session.tab_switch_count,
             "disqualified": disqualified,
@@ -553,6 +607,7 @@ class TabSwitchAPIView(APIView):
             "time_remaining": session.time_remaining,
             "disqualified": disqualified,
             "status": session.status,
+            "event": event_type,
         })
 
 
@@ -591,6 +646,21 @@ class DetectAPIView(APIView):
                 {"detail": "image is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # --- Store live frame for admin monitoring ---
+        if session_id:
+            try:
+                raw_b64 = str(image_data)
+                if "," in raw_b64:
+                    _, raw_b64 = raw_b64.split(",", 1)
+                raw_b64 = raw_b64.strip()
+                padding = len(raw_b64) % 4
+                if padding:
+                    raw_b64 += "=" * (4 - padding)
+                jpeg_bytes = base64.b64decode(raw_b64)
+                store_live_frame(int(session_id), jpeg_bytes)
+            except Exception:
+                pass  # non-critical — don't block detection
 
         try:
             frame = decode_base64_image(str(image_data))
@@ -670,9 +740,14 @@ class DetectAPIView(APIView):
             image_url = ""
             if log_entry.image:
                 try:
-                    image_url = request.build_absolute_uri(log_entry.image.url)
+                    # test if url exists
+                    _ = log_entry.image.url
+                    try:
+                        image_url = request.build_absolute_uri(log_entry.image.url)
+                    except Exception:
+                        image_url = log_entry.image.url
                 except Exception:
-                    image_url = log_entry.image.url if log_entry.image else ""
+                    image_url = ""
 
             payload = {
                 "user_id": user_id,
@@ -700,11 +775,57 @@ class DetectAPIView(APIView):
         )
 
 
+# ---------- Live Frame Upload / Serve ----------
+
+class UploadFrameAPIView(APIView):
+    """Lightweight endpoint for students to upload webcam frames (no AI detection)."""
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        image_data = request.data.get("image")
+        session_id = request.data.get("session_id")
+
+        if not image_data or not session_id:
+            return Response({"detail": "image and session_id required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            raw_b64 = str(image_data)
+            if "," in raw_b64:
+                _, raw_b64 = raw_b64.split(",", 1)
+            raw_b64 = raw_b64.strip()
+            padding = len(raw_b64) % 4
+            if padding:
+                raw_b64 += "=" * (4 - padding)
+            jpeg_bytes = base64.b64decode(raw_b64)
+            store_live_frame(int(session_id), jpeg_bytes)
+        except Exception as exc:
+            return Response({"detail": f"Invalid image: {exc}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"status": "ok"})
+
+
+class SessionFrameAPIView(APIView):
+    """Serve the latest webcam frame for a session as a JPEG image."""
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        from django.http import HttpResponse
+
+        frame_bytes = get_live_frame(pk)
+        if frame_bytes is None:
+            # Return a 1x1 transparent pixel so <img> doesn't break
+            return HttpResponse(status=204)
+
+        return HttpResponse(frame_bytes, content_type="image/jpeg")
+
+
 # ---------- Logs ----------
 
 class LogListAPIView(generics.ListAPIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    authentication_classes = [UserHeaderAuthentication]
+    permission_classes = [IsAdminOrExaminer]
     serializer_class = ProctoringLogSerializer
 
     def get_queryset(self):
@@ -719,24 +840,28 @@ class LogListAPIView(generics.ListAPIView):
 # ---------- User Management ----------
 
 class UserListAPIView(generics.ListAPIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    authentication_classes = [UserHeaderAuthentication]
+    permission_classes = [IsAdminOrExaminer]
     queryset = User.objects.all().select_related("profile")
     serializer_class = UserSerializer
 
 
 class UserDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    authentication_classes = [UserHeaderAuthentication]
     queryset = User.objects.all().select_related("profile")
     serializer_class = UserUpdateSerializer
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [IsAdminOrExaminer()]
+        return [IsAdminUser()]
 
 
 # ---------- Active Sessions ----------
 
 class ActiveSessionsAPIView(APIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    authentication_classes = [UserHeaderAuthentication]
+    permission_classes = [IsAdminOrExaminer]
 
     def get(self, request):
         sessions = ExamSession.objects.select_related("user", "user__profile").all()
@@ -761,8 +886,8 @@ class ActiveSessionsAPIView(APIView):
 
 
 class SessionDetailAPIView(APIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    authentication_classes = [UserHeaderAuthentication]
+    permission_classes = [IsAdminOrExaminer]
 
     def get(self, request, pk):
         try:

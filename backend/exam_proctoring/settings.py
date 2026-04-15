@@ -106,3 +106,4 @@ EMAIL_HOST_USER = 'trinetra660@gmail.com'
 # YOU MUST PROVIDE AN APP PASSWORD HERE VIA ENV VARIABLE:
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'ebysqkjfrektcnzd')
 DEFAULT_FROM_EMAIL = 'Trinetra <trinetra660@gmail.com>'
+MAIN_ADMIN_EMAILS = ["trinetra660@gmail.com"]

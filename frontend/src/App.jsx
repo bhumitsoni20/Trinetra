@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import ExamGate from "./pages/ExamGate";
 import ExamRoom from "./pages/ExamRoom";
 import AdminDashboard from "./pages/AdminDashboard";
+import LiveMonitering from "./pages/LiveMonitering";
 import AdminUsers from "./pages/AdminUsers";
 import AdminLogs from "./pages/AdminLogs";
 import CreateExam from "./pages/CreateExam";
@@ -72,6 +73,10 @@ function App() {
       {/* Admin Routes */}
       <Route path="/admin" element={
         isAdmin ? <AdminDashboard user={user} onLogout={handleLogout} /> :
+        <Navigate to="/login" />
+      } />
+      <Route path="/admin/live" element={
+        isAdmin ? <LiveMonitering user={user} onLogout={handleLogout} /> :
         <Navigate to="/login" />
       } />
       <Route path="/admin/users" element={

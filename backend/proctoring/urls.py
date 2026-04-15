@@ -14,7 +14,10 @@ from .views import (
     TabSwitchAPIView,
     UserDetailAPIView,
     UserListAPIView,
+    UploadFrameAPIView,
+    SessionFrameAPIView,
 )
+from .webrtc_views import WebRTCOfferView, WebRTCAnswerView
 
 urlpatterns = [
     # Auth
@@ -30,6 +33,10 @@ urlpatterns = [
     # Detection
     path("detect/", DetectAPIView.as_view(), name="detect"),
 
+    # Live Frames
+    path("frames/upload/", UploadFrameAPIView.as_view(), name="upload-frame"),
+    path("frames/<int:pk>/", SessionFrameAPIView.as_view(), name="session-frame"),
+
     # Logs
     path("logs/", LogListAPIView.as_view(), name="logs"),
 
@@ -43,4 +50,8 @@ urlpatterns = [
 
     # Metrics
     path("metrics/adoption/", AdoptionStatsAPIView.as_view(), name="adoption-metrics"),
+
+    # WebRTC Signaling
+    path("webrtc/offer/<int:pk>/", WebRTCOfferView.as_view(), name="webrtc-offer"),
+    path("webrtc/answer/<int:pk>/", WebRTCAnswerView.as_view(), name="webrtc-answer"),
 ]
