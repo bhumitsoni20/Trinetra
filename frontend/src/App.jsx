@@ -7,6 +7,7 @@ import ExamRoom from "./pages/ExamRoom";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
 import AdminLogs from "./pages/AdminLogs";
+import CreateExam from "./pages/CreateExam";
 import LandingPage from "./pages/LandingPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyOTP from "./pages/VerifyOTP";
@@ -80,6 +81,9 @@ function App() {
       <Route path="/admin/logs" element={
         isAdmin ? <AdminLogs user={user} onLogout={handleLogout} /> :
         <Navigate to="/login" />
+      } />
+      <Route path="/admin/create-exam/*" element={
+        <CreateExam user={user} onLogout={handleLogout} />
       } />
 
       {/* Fallback */}

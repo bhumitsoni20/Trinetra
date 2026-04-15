@@ -19,7 +19,7 @@ from rest_framework.views import APIView
 
 from .consumers import ALERT_GROUP_NAME
 from .detector import EVENT_RISK_SCORES, detect_suspicious_behavior
-from .models import ExamSession, ProctoringLog, Profile
+from .models import Exam, ExamSession, ProctoringLog, Profile
 from .serializers import (
     ExamSessionSerializer,
     ProctoringLogSerializer,
@@ -93,6 +93,86 @@ def get_user_from_token_or_session(request):
         except (ValueError, User.DoesNotExist):
             pass
     return None
+
+
+def is_admin_user(user):
+    try:
+        return user.profile.role == "admin"
+    except Profile.DoesNotExist:
+        return False
+
+
+def normalize_exam_questions(raw_questions):
+    normalized = []
+    if not isinstance(raw_questions, list):
+        return normalized
+
+    for idx, raw in enumerate(raw_questions):
+        if not isinstance(raw, dict):
+            continue
+        question_text = str(raw.get("question", "")).strip()
+        options = raw.get("options") if isinstance(raw.get("options"), list) else []
+        options = [str(opt).strip() for opt in options]
+
+        try:
+            correct_index = int(raw.get("correct", 0))
+        except (TypeError, ValueError):
+            correct_index = 0
+
+        q_id = raw.get("id", idx + 1)
+        try:
+            q_id = int(q_id)
+        except (TypeError, ValueError):
+            q_id = idx + 1
+
+        normalized.append({
+            "id": q_id,
+            "question": question_text,
+            "type": raw.get("type") or "mcq",
+            "options": options,
+            "correct": correct_index,
+        })
+
+    return normalized
+
+
+def validate_exam_payload(title, questions):
+    if not title:
+        return "Exam title is required."
+    if not isinstance(questions, list) or not questions:
+        return "Please add at least one question."
+
+    for index, question in enumerate(questions, start=1):
+        if not isinstance(question, dict):
+            return f"Question {index} is invalid."
+        question_text = str(question.get("question", "")).strip()
+        if not question_text:
+            return f"Question {index} is missing text."
+
+        options = question.get("options")
+        if not isinstance(options, list) or len(options) != 4:
+            return f"Question {index} must have 4 options."
+        for option_index, option in enumerate(options):
+            if not str(option).strip():
+                label = chr(ord("A") + option_index)
+                return f"Question {index} option {label} is required."
+
+        try:
+            correct_index = int(question.get("correct", -1))
+        except (TypeError, ValueError):
+            return f"Question {index} has invalid correct answer."
+        if correct_index < 0 or correct_index >= 4:
+            return f"Question {index} has invalid correct answer."
+
+    return ""
+
+
+def get_exam_questions(exam):
+    if not exam:
+        return EXAM_QUESTIONS
+
+    normalized = normalize_exam_questions(exam.questions)
+    return normalized if normalized else EXAM_QUESTIONS
 
 
 # ---------- Question Bank ----------
@@ -288,6 +368,40 @@ class RegisterAPIView(APIView):
 
 # ---------- Exam ----------
 
+class CreateExamAPIView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        user = get_user_from_token_or_session(request)
+        if not user:
+            return Response({"detail": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
+        if not is_admin_user(user):
+            return Response({"detail": "Admin access required."}, status=status.HTTP_403_FORBIDDEN)
+
+        title = str(request.data.get("title", "")).strip()
+        questions = request.data.get("questions", [])
+        validation_error = validate_exam_payload(title, questions)
+        if validation_error:
+            return Response({"detail": validation_error}, status=status.HTTP_400_BAD_REQUEST)
+
+        cleaned_questions = []
+        for index, question in enumerate(questions, start=1):
+            cleaned_questions.append({
+                "id": index,
+                "question": str(question.get("question", "")).strip(),
+                "type": "mcq",
+                "options": [str(opt).strip() for opt in question.get("options", [])],
+                "correct": int(question.get("correct", 0)),
+            })
+
+        exam = Exam.objects.create(title=title, questions=cleaned_questions, created_by=user)
+        return Response({
+            "id": exam.id,
+            "title": exam.title,
+            "question_count": len(cleaned_questions),
+        }, status=status.HTTP_201_CREATED)
+
 class StartExamAPIView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -305,22 +419,28 @@ class StartExamAPIView(APIView):
         if not user:
             return Response({"detail": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
 
+        latest_exam = Exam.objects.order_by("-created_at").first()
+
         # Check for existing active session
         active = ExamSession.objects.filter(user=user, status="active").first()
         if active:
+            if latest_exam and active.exam_id != latest_exam.id:
+                active.exam = latest_exam
+                active.save(update_fields=["exam"])
+            questions = get_exam_questions(active.exam or latest_exam)
             return Response({
                 "session_id": active.id,
-                "questions": EXAM_QUESTIONS,
+                "questions": questions,
                 "time_remaining": active.time_remaining,
                 "status": active.status,
                 "violations_count": active.violations_count,
                 "tab_switch_count": active.tab_switch_count,
             })
 
-        session = ExamSession.objects.create(user=user, time_remaining=3600)
+        session = ExamSession.objects.create(user=user, time_remaining=3600, exam=latest_exam)
         return Response({
             "session_id": session.id,
-            "questions": EXAM_QUESTIONS,
+            "questions": get_exam_questions(latest_exam),
             "time_remaining": session.time_remaining,
             "status": session.status,
             "violations_count": 0,
@@ -345,11 +465,24 @@ class SubmitExamAPIView(APIView):
             return Response({"detail": "Exam already ended.", "status": session.status})
 
         # Calculate score
+        questions = get_exam_questions(session.exam)
         correct = 0
-        total = len(EXAM_QUESTIONS)
-        for q in EXAM_QUESTIONS:
-            user_answer = answers.get(str(q["id"]))
-            if user_answer is not None and int(user_answer) == q["correct"]:
+        total = len(questions)
+        for q in questions:
+            q_id = q.get("id")
+            user_answer = None
+            if isinstance(answers, dict):
+                user_answer = answers.get(str(q_id))
+                if user_answer is None:
+                    user_answer = answers.get(q_id)
+            if user_answer is None:
+                continue
+            try:
+                answer_index = int(user_answer)
+                correct_index = int(q.get("correct", -1))
+            except (TypeError, ValueError):
+                continue
+            if answer_index == correct_index:
                 correct += 1
 
         session.status = "completed"

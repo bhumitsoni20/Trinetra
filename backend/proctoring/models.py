@@ -23,6 +23,25 @@ class Profile(models.Model):
         return f"{self.user.username} ({self.role})"
 
 
+class Exam(models.Model):
+    title = models.CharField(max_length=255)
+    questions = models.JSONField(default=list, blank=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_exams",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.title
+
+
 class ExamSession(models.Model):
     STATUS_CHOICES = (
         ("active", "Active"),
@@ -30,6 +49,7 @@ class ExamSession(models.Model):
         ("disqualified", "Disqualified"),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exam_sessions")
+    exam = models.ForeignKey(Exam, on_delete=models.SET_NULL, null=True, blank=True, related_name="sessions")
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
     violations_count = models.PositiveIntegerField(default=0)

@@ -74,6 +74,15 @@ export async function registerUser(data) {
 }
 
 // ---- Exam ----
+export async function createExam(payload) {
+  const response = await fetch(`${API_BASE_URL}/api/exams/create/`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return parseJsonResponse(response);
+}
+
 export async function startExam(userId) {
   const response = await fetch(`${API_BASE_URL}/api/start-exam/`, {
     method: "POST",

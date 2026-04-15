@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Monitor, Users, FileText, LogOut, Edit3, Trash2, Save, X,
+  Monitor, Users, FileText, FilePlus, LogOut, Edit3, Trash2, Save, X,
   Search, UserPlus, Menu, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { fetchUsers, updateUser, deleteUser, registerUser } from "../services/api";
@@ -147,6 +147,15 @@ export default function AdminUsers({ user, onLogout }) {
           >
             <Users size={18} className="text-blue-600" />
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>User Management</span>
+          </Link>
+          <Link
+            to="/admin/create-exam"
+            title="Create Exam"
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <FilePlus size={18} />
+            <span className={sidebarCollapsed ? "lg:hidden" : ""}>Create Exam</span>
           </Link>
           <Link
             to="/admin/logs"
