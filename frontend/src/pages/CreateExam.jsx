@@ -38,14 +38,14 @@ function QuestionCard({
     <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition hover:shadow-[0_10px_28px_rgba(15,23,42,0.12)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Question {index + 1}</p>
-          <p className="text-sm text-slate-600">Select the correct option below.</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Question {index + 1}</p>
+          <p className="text-base text-slate-600">Select the correct option below.</p>
         </div>
         <button
           type="button"
           onClick={() => onDelete(index)}
           disabled={!canDelete}
-          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition ${
+          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
             canDelete
               ? "border-rose-200 text-rose-600 hover:bg-rose-50"
               : "cursor-not-allowed border-slate-200 text-slate-400"
@@ -57,10 +57,10 @@ function QuestionCard({
       </div>
 
       <div className="mt-4">
-        <label className="text-xs font-medium text-slate-600">Question Text</label>
+        <label className="text-sm font-medium text-slate-600">Question Text</label>
         <textarea
           rows={3}
-          className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-base text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           placeholder="Type the question here"
           value={data.question}
           onChange={(e) => onQuestionChange(index, e.target.value)}
@@ -69,8 +69,8 @@ function QuestionCard({
 
       <div className="mt-4">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-slate-600">Options</label>
-          <span className="text-[11px] text-slate-500">Correct answer is highlighted</span>
+          <label className="text-sm font-medium text-slate-600">Options</label>
+          <span className="text-xs text-slate-500">Correct answer is highlighted</span>
         </div>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
           {data.options.map((option, optionIndex) => (
@@ -86,10 +86,10 @@ function QuestionCard({
                 onChange={() => onCorrectChange(index, optionIndex)}
               />
               <div className="flex-1">
-                <span className="text-[11px] font-semibold text-slate-500">Option {OPTION_LABELS[optionIndex]}</span>
+                <span className="text-xs font-semibold text-slate-500">Option {OPTION_LABELS[optionIndex]}</span>
                 <input
                   type="text"
-                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 ${
+                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-base text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 ${
                     data.correct === optionIndex ? "border-blue-200 bg-blue-50/60" : "border-slate-200 bg-slate-50"
                   }`}
                   placeholder={`Option ${OPTION_LABELS[optionIndex]}`}
@@ -123,10 +123,10 @@ export default function CreateExam({ user, onLogout }) {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <h1 className="font-display text-2xl font-semibold text-slate-900">Access Denied</h1>
-          <p className="mt-2 text-sm text-slate-600">You do not have permission to view this page.</p>
+          <p className="mt-2 text-base text-slate-600">You do not have permission to view this page.</p>
           <Link
             to="/login"
-            className="mt-5 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-slate-800"
+            className="mt-5 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-900 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-slate-800"
           >
             Back to Login
           </Link>
@@ -348,8 +348,8 @@ export default function CreateExam({ user, onLogout }) {
               <Menu size={18} />
             </button>
             <div>
-              <h1 className="font-display text-xl font-bold text-slate-900 sm:text-2xl">Create Exam</h1>
-              <p className="text-sm text-slate-600">Build question sets for AI proctoring</p>
+              <h1 className="font-display text-2xl font-bold text-slate-900 sm:text-3xl">Create Exam</h1>
+              <p className="text-base text-slate-600">Build question sets for AI proctoring</p>
             </div>
           </div>
         </header>
@@ -358,18 +358,18 @@ export default function CreateExam({ user, onLogout }) {
           <div className="mb-6 rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-5 shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="font-display text-lg font-semibold text-slate-900">Exam Details</h2>
-                <p className="text-sm text-slate-600">Add a title and craft each question carefully.</p>
+                <h2 className="font-display text-xl font-semibold text-slate-900">Exam Details</h2>
+                <p className="text-base text-slate-600">Add a title and craft each question carefully.</p>
               </div>
-              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-600">
                 Questions: {questions.length}
               </span>
             </div>
             <div className="mt-4">
-              <label className="text-xs font-medium text-slate-600">Exam Title</label>
+              <label className="text-sm font-medium text-slate-600">Exam Title</label>
               <input
                 type="text"
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 placeholder="e.g. Final Assessment - Data Structures"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -378,13 +378,13 @@ export default function CreateExam({ user, onLogout }) {
           </div>
 
           {error ? (
-            <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-base text-rose-700">
               {error}
             </div>
           ) : null}
 
           {success ? (
-            <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-base text-emerald-700">
               {success}
             </div>
           ) : null}
@@ -408,7 +408,7 @@ export default function CreateExam({ user, onLogout }) {
             <button
               type="button"
               onClick={addQuestion}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-base font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
             >
               <Plus size={16} />
               Add Question
@@ -417,7 +417,7 @@ export default function CreateExam({ user, onLogout }) {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(37,99,235,0.2)] transition hover:from-blue-500 hover:to-indigo-500 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(37,99,235,0.2)] transition hover:from-blue-500 hover:to-indigo-500 disabled:opacity-60"
             >
               {saving ? "Saving..." : <><Save size={16} /> Save Exam</>}
             </button>
