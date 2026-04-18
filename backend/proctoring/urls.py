@@ -4,6 +4,10 @@ from .views import (
     ActiveSessionsAPIView,
     AdoptionStatsAPIView,
     CreateExamAPIView,
+    ExamAssignStudentsAPIView,
+    ExamAttemptListAPIView,
+    ExamDetailAPIView,
+    ExamListAPIView,
     DetectAPIView,
     LoginAPIView,
     LogListAPIView,
@@ -27,6 +31,10 @@ urlpatterns = [
     # Exam
     path("start-exam/", StartExamAPIView.as_view(), name="start-exam"),
     path("exams/create/", CreateExamAPIView.as_view(), name="create-exam"),
+    path("exams/", ExamListAPIView.as_view(), name="exam-list"),
+    path("exams/<int:pk>/", ExamDetailAPIView.as_view(), name="exam-detail"),
+    path("exams/<int:pk>/assign/", ExamAssignStudentsAPIView.as_view(), name="exam-assign"),
+    path("exams/<int:pk>/attempts/", ExamAttemptListAPIView.as_view(), name="exam-attempts"),
     path("submit-exam/", SubmitExamAPIView.as_view(), name="submit-exam"),
     path("tab-switch/", TabSwitchAPIView.as_view(), name="tab-switch"),
 

@@ -33,18 +33,20 @@ export default function StudentLogin({ onLogin }) {
           role: "student",
         });
         // Auto-login after registration
-        const user = await loginUser(email, password);
+        const res = await loginUser(email, password);
+        const user = res?.user || res;
         onLogin(user);
-        navigate("/exam-gate");
+        navigate("/exam");
       } else {
-        const user = await loginUser(email, password);
-        if (user.role === "admin") {
-          setError("Please use Admin Login for admin accounts.");
+        const res = await loginUser(email, password);
+        const user = res?.user || res;
+        if (user.role === "admin" || user.role === "examiner") {
+          setError("Please use the main login page for admin or examiner accounts.");
           setLoading(false);
           return;
         }
         onLogin(user);
-        navigate("/exam-gate");
+        navigate("/exam");
       }
     } catch (err) {
       setError(err.message || "Authentication failed.");

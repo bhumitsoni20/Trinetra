@@ -1,14 +1,19 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, Mic, ShieldCheck, AlertTriangle, PlayCircle, LogOut } from "lucide-react";
 
 import Logo from "../assets/TRINETRA.png";
+import { fetchExams } from "../services/api";
 
 export default function ExamGate({ user, onLogout }) {
   const [cameraOk, setCameraOk] = useState(false);
   const [micOk, setMicOk] = useState(false);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState("");
+  const [examError, setExamError] = useState("");
+  const [exams, setExams] = useState([]);
+  const [loadingExams, setLoadingExams] = useState(true);
+  const [selectedExam, setSelectedExam] = useState(null);
   const navigate = useNavigate();
 
   const checkPermissions = useCallback(async () => {
@@ -41,8 +46,32 @@ export default function ExamGate({ user, onLogout }) {
 
   const canStart = cameraOk && micOk;
 
+  useEffect(() => {
+    let mounted = true;
+    const loadExams = async () => {
+      setLoadingExams(true);
+      setExamError("");
+      try {
+        const data = await fetchExams();
+        if (mounted) {
+          setExams(data);
+        }
+      } catch (err) {
+        if (mounted) setExamError(err.message || "Failed to load exams.");
+      } finally {
+        if (mounted) setLoadingExams(false);
+      }
+    };
+    loadExams();
+    return () => { mounted = false; };
+  }, []);
+
   const startExam = () => {
-    navigate("/exam");
+    if (!selectedExam) {
+      setExamError("Please select an exam.");
+      return;
+    }
+    navigate(`/exam/${selectedExam.id}`);
   };
 
   return (
@@ -141,17 +170,67 @@ export default function ExamGate({ user, onLogout }) {
                     <li>• Tab switching will deduct 10 minutes from your time</li>
                     <li>• 3 tab switches will result in automatic disqualification</li>
                     <li>• AI will detect suspicious activities in real-time</li>
-                    <li>• You have 60 minutes to complete 15 questions</li>
+                    <li>
+                      • Duration: {selectedExam ? `${selectedExam.duration} minutes` : "Select an exam to view duration"}
+                    </li>
                   </ul>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Exam List */}
+          <div className="mt-8">
+            <h2 className="font-display text-lg font-semibold text-slate-900">Assigned Exams</h2>
+            <p className="mt-1 text-sm text-slate-600">Choose the exam you are allowed to attempt.</p>
+
+            {loadingExams ? (
+              <div className="mt-4 glass-card rounded-2xl p-6 text-center">
+                <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
+              </div>
+            ) : exams.length === 0 ? (
+              <div className="mt-4 glass-card rounded-2xl p-6 text-center text-sm text-slate-600">
+                No exams are assigned to you yet.
+              </div>
+            ) : (
+              <div className="mt-4 grid gap-3">
+                {exams.map((exam) => {
+                  const isSelected = selectedExam?.id === exam.id;
+                  return (
+                    <button
+                      key={exam.id}
+                      type="button"
+                      onClick={() => { setSelectedExam(exam); setExamError(""); }}
+                      className={`flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
+                        isSelected
+                          ? "border-cyan-300 bg-cyan-50 shadow-[0_10px_30px_rgba(14,116,144,0.15)]"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">{exam.title}</p>
+                        <p className="text-xs text-slate-500">{exam.subject} · {exam.duration} min · {exam.total_marks} marks</p>
+                      </div>
+                      <span className={`text-xs font-mono uppercase tracking-widest ${isSelected ? "text-cyan-600" : "text-slate-400"}`}>
+                        {isSelected ? "Selected" : "Select"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {error && (
             <div className="animate-fadeIn mt-4 flex items-center gap-2 rounded-xl border border-red-400/30 bg-red-50 px-4 py-3 text-sm text-red-700">
               <AlertTriangle size={16} />
               {error}
+            </div>
+          )}
+          {examError && !error && (
+            <div className="animate-fadeIn mt-4 flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+              <AlertTriangle size={16} />
+              {examError}
             </div>
           )}
 
@@ -177,7 +256,8 @@ export default function ExamGate({ user, onLogout }) {
             {canStart && (
               <button
                 onClick={startExam}
-                className="btn-primary w-full justify-center py-3.5 text-base"
+                disabled={!selectedExam}
+                className={`btn-primary w-full justify-center py-3.5 text-base ${!selectedExam ? "opacity-60 cursor-not-allowed" : ""}`}
               >
                 <PlayCircle size={20} />
                 Start Exam

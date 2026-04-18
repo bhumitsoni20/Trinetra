@@ -6,6 +6,7 @@ import {
   Bell, Eye, Zap, Target, Wifi, WifiOff, LogOut, FileText, View, Menu, Loader2, VideoOff,
   RefreshCw
 } from "lucide-react";
+import Logo from "../assets/TRINETRA.png";
 import { fetchSessions, fetchLogs, postWebRTCOffer, getWebRTCAnswer } from "../services/api";
 import useProctoringSocket from "../hooks/useProctoringSocket";
 
@@ -41,11 +42,16 @@ const StudentStreamCard = ({ session, isSuspicious, status, onClick }) => {
       
       // Handle incoming video track from student
       pc.ontrack = (event) => {
+        console.log("Admin received track!", event.streams);
         if (videoRef.current && event.streams[0]) {
           videoRef.current.srcObject = event.streams[0];
           setStreamActive(true);
           setConnecting(false);
         }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        console.log("Admin ICE state:", pc.iceConnectionState);
       };
 
       // Create dummy audio/video transceivers to force receiving media
@@ -101,10 +107,10 @@ const StudentStreamCard = ({ session, isSuspicious, status, onClick }) => {
 
   return (
     <div 
-      className="group relative rounded-2xl bg-[#0B101E] border border-cyan-500/30 overflow-hidden hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.25)] transition-all duration-500 hover:-translate-y-1 cursor-pointer animate-scaleIn"
+      className="group relative rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-cyan-300 hover:shadow-xl transition-all duration-500 hover:-translate-y-1 cursor-pointer animate-scaleIn shadow-sm"
       onClick={() => onClick(session)}
     >
-      <div className="aspect-video bg-[#050810] relative overflow-hidden flex items-center justify-center">
+      <div className="aspect-video bg-slate-900 relative overflow-hidden flex items-center justify-center">
          
          {/* Live Video Element */}
          <video 
@@ -117,19 +123,18 @@ const StudentStreamCard = ({ session, isSuspicious, status, onClick }) => {
 
          {/* Connecting Placeholder */}
          {!streamActive && (
-           <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-slate-50">
              <div className="relative">
-               <Camera size={32} className="text-cyan-600/40 mb-2" />
-               <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)] ${connecting ? 'bg-amber-500 animate-pulse' : 'bg-slate-600'}`} />
+               <Camera size={32} className="text-slate-300 mb-2" />
+               <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)] ${connecting ? 'bg-amber-500 animate-pulse' : 'bg-slate-300'}`} />
              </div>
              <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">
                 {connecting ? "Connecting to stream..." : "Stream Unavailable"}
              </span>
-             {connecting && <Loader2 size={14} className="text-cyan-500/50 animate-spin mt-2" />}
+             {connecting && <Loader2 size={14} className="text-cyan-500 animate-spin mt-2" />}
            </div>
          )}
          
-         {/* Decorative Scanner Array — only when streaming */}
          {/* Decorative Scanner Array — only when streaming */}
          {streamActive && (
            <div className="absolute top-0 inset-x-0 h-[2px] bg-cyan-400 shadow-[0_0_20px_#22d3ee] animate-[float_4s_linear_infinite] z-10 pointer-events-none" />
@@ -163,27 +168,27 @@ const StudentStreamCard = ({ session, isSuspicious, status, onClick }) => {
            <div className="absolute inset-0 border-2 border-red-500/70 shadow-[inset_0_0_40px_rgba(239,68,68,0.4)] animate-pulse z-20 pointer-events-none" />
          )}
 
-         {/* Bottom HUD Details */}
-         <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/90 to-transparent flex items-end justify-between z-20 pointer-events-none">
-            <div>
-               <p className="text-sm font-semibold text-white truncate drop-shadow-[0_0_5px_black]">{session.username}</p>
-               <p className="text-[9px] text-slate-300 font-mono uppercase drop-shadow-[0_0_5px_black]">ID: {String(session.id).substring(0,8)}</p>
-            </div>
-            <div className="flex gap-1.5">
-               <div className="w-6 h-6 rounded bg-black/60 backdrop-blur border border-white/10 flex items-center justify-center text-rose-400" title="Tab Switches">
-                 <Activity size={10} />
-                 <span className="ml-[1px] text-[8px] font-mono">{session.tab_switch_count}</span>
-               </div>
-               <div className={`w-6 h-6 rounded bg-black/60 backdrop-blur border flex items-center justify-center text-[8px] font-mono ${session.violations_count > 0 ? 'border-amber-500/30 text-amber-400' : 'border-emerald-500/30 text-emerald-400'}`} title="Violations">
-                 <AlertTriangle size={10} />
-                 <span className="ml-[1px]">{session.violations_count}</span>
-               </div>
-            </div>
-         </div>
-
          {/* Click to expand overlay */}
-         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/20 transition-all z-30">
-            <Maximize2 size={24} className="text-white/80 scale-75 group-hover:scale-100 transition-transform drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]" />
+         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-white/20 backdrop-blur-sm transition-all z-30">
+            <Maximize2 size={24} className="text-white drop-shadow-md scale-75 group-hover:scale-100 transition-transform" />
+         </div>
+      </div>
+      
+      {/* Bottom Details outside video frame */}
+      <div className="p-3 bg-white flex items-end justify-between z-20 border-t border-slate-100">
+         <div>
+            <p className="text-sm font-semibold text-slate-900 truncate">{session.username}</p>
+            <p className="text-[10px] text-slate-500 font-mono uppercase">ID: {String(session.id).substring(0,8)}</p>
+         </div>
+         <div className="flex gap-1.5">
+            <div className="w-7 h-7 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500" title="Tab Switches">
+              <Activity size={12} />
+              <span className="ml-[1px] text-[9px] font-mono font-semibold">{session.tab_switch_count}</span>
+            </div>
+            <div className={`w-7 h-7 rounded-lg border flex items-center justify-center text-[9px] font-mono font-semibold ${session.violations_count > 0 ? 'bg-red-50 border-red-100 text-red-500' : 'bg-emerald-50 border-emerald-100 text-emerald-500'}`} title="Violations">
+              <AlertTriangle size={12} />
+              <span className="ml-[1px]">{session.violations_count}</span>
+            </div>
          </div>
       </div>
     </div>
@@ -316,6 +321,10 @@ const ExpandedFrameView = ({ session, onClose }) => {
 
 export default function LiveMonitoring({ user, onLogout }) {
   const navigate = useNavigate();
+  const isExaminer = user?.role === "examiner";
+  const dashboardPath = isExaminer ? "/examiner-dashboard" : "/admin";
+  const livePath = isExaminer ? "/examiner/live" : "/admin/live";
+  const usersPath = isExaminer ? "/examiner/users" : "/admin/users";
   const [sessions, setSessions] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -386,7 +395,10 @@ export default function LiveMonitoring({ user, onLogout }) {
 
   const filteredSessions = useMemo(() => {
     return sessions.filter((s) => {
-      // Show ALL active exam sessions
+      // Show ONLY active exam sessions based on status
+      const isActive = s.status === "active";
+      if (!isActive) return false;
+
       if (!activeSearch) return true;
       const strId = String(s.id).toLowerCase();
       const strName = (s.username || "").toLowerCase();
@@ -410,68 +422,71 @@ export default function LiveMonitoring({ user, onLogout }) {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#02050A] text-white font-sans selection:bg-cyan-500/30 flex overflow-hidden">
+    <div className="relative min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-cyan-500/30 flex overflow-hidden">
       
       {/* Background Ambience */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(10,15,30,1),rgba(2,5,10,1))]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
-        <div className="absolute top-0 left-[20%] w-[40%] h-[30%] bg-cyan-900/20 blur-[150px]" />
-        <div className="absolute bottom-0 right-[20%] w-[30%] h-[40%] bg-indigo-900/20 blur-[150px]" />
+        <div className="absolute -left-36 top-0 h-72 w-72 rounded-full bg-cyan-500/20 blur-[120px] sm:h-96 sm:w-96" />
+        <div className="absolute -right-20 top-32 h-60 w-60 rounded-full bg-indigo-500/20 blur-[110px] sm:h-80 sm:w-80" />
+        <div className="absolute bottom-0 left-1/3 h-56 w-56 rounded-full bg-violet-500/15 blur-[100px] sm:h-72 sm:w-72" />
       </div>
 
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Left Sidebar */}
-      <aside className={`fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-slate-800/60 bg-[#0a0e1a]/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center justify-between border-b border-slate-800/60 px-5 py-5">
+      <aside className={`fixed left-0 top-0 z-50 flex h-full w-[240px] flex-col border-r border-slate-200 bg-white/95 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-              <ShieldCheck size={18} className="text-white" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-200 overflow-hidden">
+              <img src={Logo} alt="Trinetra" className="w-6 h-6 object-contain" />
             </div>
             <div>
-              <p className="font-display text-sm font-bold text-white">Trinetra</p>
-              <p className="text-[10px] text-cyan-400 font-mono tracking-widest uppercase mt-0.5">Admin Central</p>
+              <p className="font-display text-sm font-bold text-slate-900">Trinetra</p>
+              <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mt-0.5">
+                {isExaminer ? "Examiner Central" : "Admin Central"}
+              </p>
             </div>
           </div>
           <button className="lg:hidden p-1 text-slate-400" onClick={() => setSidebarOpen(false)}><X size={18} /></button>
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
-          <Link to="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
+          <Link to={dashboardPath} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" onClick={() => setSidebarOpen(false)}>
             <Monitor size={16} /> Dashboard
           </Link>
-          <Link to="/admin/live" className="flex items-center gap-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 px-3 py-2.5 text-sm font-medium text-cyan-400 transition" onClick={() => setSidebarOpen(false)}>
-            <View size={16} className="text-cyan-400" /> Live Monitoring
+          <Link to={livePath} className="flex items-center gap-3 rounded-xl bg-cyan-50 border border-cyan-100 px-3 py-2.5 text-sm font-medium text-cyan-700 transition" onClick={() => setSidebarOpen(false)}>
+            <View size={16} className="text-cyan-600" /> Live Monitoring
           </Link>
-          <Link to="/admin/users" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
+          <Link to={usersPath} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" onClick={() => setSidebarOpen(false)}>
             <Users size={16} /> User Management
           </Link>
-          <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition" onClick={() => setSidebarOpen(false)}>
-            <FileText size={16} /> Alert Logs
-          </Link>
+          {!isExaminer && (
+            <Link to="/admin/logs" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" onClick={() => setSidebarOpen(false)}>
+              <FileText size={16} /> Alert Logs
+            </Link>
+          )}
         </nav>
 
-        <div className="border-t border-slate-800/60 px-3 py-4">
+        <div className="border-t border-slate-200 px-3 py-4">
           <div className="mb-3 flex items-center gap-2 px-3 text-xs text-slate-500">
             {connected ? (
-              <><Wifi size={12} className="text-emerald-400" /> Live Connected</>
+              <><Wifi size={12} className="text-emerald-500" /> Live Connected</>
             ) : (
-              <><RefreshCw size={12} className="text-amber-400 animate-spin" /> Connecting...</>
+              <><RefreshCw size={12} className="text-amber-500 animate-spin" /> Connecting...</>
             )}
           </div>
-          <div className="flex items-center gap-3 rounded-xl px-3 py-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/15 text-xs font-bold text-cyan-300">
+          <div className="flex items-center gap-3 rounded-xl px-3 py-2 bg-slate-50 mb-2 border border-slate-100">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-100 text-xs font-bold text-cyan-700">
               {user.username?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-white truncate">{user.username}</p>
+              <p className="text-xs font-medium text-slate-900 truncate">{user.username}</p>
               <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
             </div>
           </div>
-          <button onClick={() => { onLogout(); navigate("/"); }} className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition">
+          <button onClick={() => { onLogout(); navigate("/"); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-slate-600 hover:bg-red-50 hover:text-red-600 transition">
             <LogOut size={14} /> Sign Out
           </button>
         </div>
@@ -482,16 +497,16 @@ export default function LiveMonitoring({ user, onLogout }) {
         
         {/* Center: Top Bar + Grid */}
         <section className="flex-1 flex flex-col min-w-0">
-          <header className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-[#050A14]/90 backdrop-blur-xl border-b border-white/10 shadow-lg">
+          <header className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-sm">
             <div className="flex items-center gap-4 mb-4 sm:mb-0 w-full sm:w-auto">
-              <button className="lg:hidden p-1.5 rounded-lg border border-white/10 bg-white/5" onClick={() => setSidebarOpen(true)}>
+              <button className="lg:hidden p-1.5 rounded-lg border border-slate-200 bg-slate-50" onClick={() => setSidebarOpen(true)}>
                 <Menu size={18} />
               </button>
               <div>
-                <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
                   Control Room
                 </h1>
-                <p className="text-[10px] sm:text-xs font-mono text-cyan-500 uppercase tracking-widest mt-0.5 opacity-80">
+                <p className="text-[10px] sm:text-xs font-mono text-cyan-600 uppercase tracking-widest mt-0.5 opacity-80">
                   Live Webcam Surveillance
                 </p>
               </div>
@@ -499,17 +514,17 @@ export default function LiveMonitoring({ user, onLogout }) {
 
             {/* Global Search Bar */}
             <form onSubmit={handleSearch} className="relative w-full sm:max-w-[320px] group">
-              <div className="absolute inset-0 bg-cyan-500 rounded-xl blur opacity-10 group-hover:opacity-20 transition-opacity" />
-              <div className="relative flex items-center bg-[#0A0F1C]/80 border border-white/10 rounded-xl overflow-hidden focus-within:border-cyan-500/50 transition-colors">
-                <Search size={16} className="absolute left-4 text-cyan-500/70" />
+              <div className="absolute inset-0 bg-cyan-200 rounded-xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="relative flex items-center bg-white border border-slate-200 rounded-xl overflow-hidden focus-within:border-cyan-300 focus-within:shadow-sm transition-all">
+                <Search size={16} className="absolute left-4 text-slate-400" />
                 <input 
                   type="text" 
                   placeholder="Search Active Feeds..." 
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent py-2.5 pl-11 pr-12 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0"
+                  className="w-full bg-transparent py-2.5 pl-11 pr-12 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0"
                 />
-                <button type="submit" className="absolute right-1.5 p-1.5 bg-cyan-600/20 hover:bg-cyan-500 text-cyan-400 hover:text-white rounded-lg transition-all">
+                <button type="submit" className="absolute right-1.5 p-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-600 rounded-lg transition-all">
                   <Target size={14} />
                 </button>
               </div>
@@ -520,12 +535,12 @@ export default function LiveMonitoring({ user, onLogout }) {
           <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
              {loading ? (
                <div className="flex items-center justify-center h-full">
-                 <div className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
+                 <div className="w-12 h-12 rounded-full border-4 border-cyan-100 border-t-cyan-500 animate-spin" />
                </div>
              ) : filteredSessions.length === 0 ? (
                <div className="flex flex-col items-center justify-center h-full opacity-60 animate-fadeIn">
-                  <VideoOff size={56} className="text-cyan-600/50 mb-4" />
-                  <p className="text-white text-lg font-display tracking-wide">No active exam sessions</p>
+                  <VideoOff size={56} className="text-slate-300 mb-4" />
+                  <p className="text-slate-600 text-lg font-display tracking-wide">No active exam sessions</p>
                   <p className="text-slate-400 font-mono text-xs uppercase tracking-widest mt-2">{searchQuery ? "No matches found" : "Waiting for students to start their exams..."}</p>
                </div>
              ) : (
@@ -545,25 +560,25 @@ export default function LiveMonitoring({ user, onLogout }) {
         </section>
 
         {/* Right Side: Alerts Panel */}
-        <aside className="w-full lg:w-[320px] bg-[#0A0F1C]/80 border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col backdrop-blur-xl h-64 lg:h-full">
-           <div className="p-4 border-b border-white/10 bg-[#0B101E]">
-             <h3 className="font-display text-sm font-bold flex items-center gap-2 text-white">
-               <AlertTriangle size={16} className="text-red-400" /> Action Logs
+        <aside className="w-full lg:w-[320px] bg-white/60 border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col backdrop-blur-xl h-64 lg:h-full">
+           <div className="p-4 border-b border-slate-200 bg-white/90">
+             <h3 className="font-display text-sm font-bold flex items-center gap-2 text-slate-900">
+               <AlertTriangle size={16} className="text-red-500" /> Action Logs
              </h3>
-             <p className="text-[10px] text-cyan-500/70 font-mono mt-1 uppercase tracking-widest">A.I. Triggered Violations</p>
+             <p className="text-[10px] text-cyan-600 font-mono mt-1 uppercase tracking-widest">A.I. Triggered Violations</p>
            </div>
            
            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
              {alerts.length === 0 ? (
-               <div className="text-center py-10 opacity-50">
-                 <ShieldCheck size={32} className="mx-auto mb-3 text-cyan-600/50" />
-                 <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">All systems nominal</p>
+               <div className="text-center py-10 opacity-60">
+                 <ShieldCheck size={32} className="mx-auto mb-3 text-emerald-500" />
+                 <p className="text-[11px] text-slate-500 font-mono uppercase tracking-wider">All systems nominal</p>
                </div>
              ) : (
                alerts.map((alert) => (
-                 <div key={alert.id} className="bg-[#050810]/80 border border-white/5 rounded-lg p-3 animate-slideInRight hover:bg-white/5 transition-colors">
+                 <div key={alert.id} className="bg-white border border-slate-100 shadow-sm rounded-lg p-3 animate-slideInRight hover:shadow-md transition-shadow">
                    <div className="flex items-start gap-3">
-                      <div className={`shrink-0 p-2 rounded-lg bg-white/5 ${getEventColor(alert.event)}`}>
+                      <div className={`shrink-0 p-2 rounded-lg bg-slate-50 ${getEventColor(alert.event)}`}>
                         {alert.event.includes('Tab') ? <Monitor size={14} /> : 
                          alert.event.includes('Face') ? <ScanFace size={14} /> : 
                          <AlertTriangle size={14} />}
@@ -571,11 +586,11 @@ export default function LiveMonitoring({ user, onLogout }) {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
                           <p className={`text-xs font-bold ${getEventColor(alert.event)} truncate pr-2 tracking-wide`}>{alert.event}</p>
-                          <span className="text-[9px] text-slate-500 font-mono whitespace-nowrap pt-0.5">
+                          <span className="text-[9px] text-slate-400 font-mono whitespace-nowrap pt-0.5">
                             {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit'})}
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-400 font-mono truncate mt-1 bg-black/40 px-1.5 py-0.5 inline-block rounded">ID: {String(alert.username || alert.user_id).substring(0,8).toUpperCase()}</p>
+                        <p className="text-[10px] text-slate-500 font-mono truncate mt-1 bg-slate-50 px-1.5 py-0.5 inline-block rounded border border-slate-100">ID: {String(alert.username || alert.user_id).substring(0,8).toUpperCase()}</p>
                       </div>
                    </div>
                  </div>

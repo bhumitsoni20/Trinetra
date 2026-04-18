@@ -63,11 +63,19 @@ def is_admin_email(email):
 def resolve_role(user, email):
     if user:
         try:
-            if user.profile.role == "admin":
-                return "admin"
+            return user.profile.role
         except Profile.DoesNotExist:
             pass
     return "admin" if is_admin_email(email) else "student"
+
+
+def resolve_subject(user):
+    if user:
+        try:
+            return user.profile.subject or ""
+        except Profile.DoesNotExist:
+            return ""
+    return ""
 
 
 def ensure_profile_role(user, role):
@@ -148,6 +156,7 @@ class GoogleLoginView(APIView):
             role = resolve_role(user, email)
             ensure_admin_account(email, role)
             ensure_profile_role(user, role)
+            subject = resolve_subject(user)
 
             # Simulated token generation or session login
             return Response({
@@ -155,8 +164,12 @@ class GoogleLoginView(APIView):
                 'user': {
                     'id': user.id,
                     'email': user.email,
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
                     'name': user.first_name,
-                    'role': role
+                    'role': role,
+                    'subject': subject
                 }
             })
         except Exception as e:
@@ -178,13 +191,18 @@ class EmailLoginView(APIView):
                 role = resolve_role(user, user.email)
                 ensure_admin_account(user.email, role)
                 ensure_profile_role(user, role)
+                subject = resolve_subject(user)
                 return Response({
                     'message': 'Login successful via Django',
                     'user': {
                         'id': user.id,
                         'email': user.email,
+                        'username': user.username,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
                         'name': user.first_name or user.email.split('@')[0],
-                        'role': role
+                        'role': role,
+                        'subject': subject
                     }
                 })
             else:
@@ -211,14 +229,19 @@ class EmailLoginView(APIView):
             role = resolve_role(user, email)
             ensure_admin_account(email, role)
             ensure_profile_role(user, role)
+            subject = resolve_subject(user)
 
             return Response({
                 'message': 'Login successful',
                 'user': {
                     'id': user.id,
                     'email': user.email,
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
                     'name': user.first_name or email.split('@')[0],
-                    'role': role
+                    'role': role,
+                    'subject': subject
                 }
             })
         except Exception as e:

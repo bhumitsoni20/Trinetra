@@ -9,19 +9,24 @@ import Logo from "../assets/TRINETRA.png";
 
 export default function AdminUsers({ user, onLogout }) {
   const navigate = useNavigate();
+  const isExaminer = user?.role === "examiner";
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
-  const [newUser, setNewUser] = useState({ username: "", email: "", password: "", first_name: "", last_name: "", role: "student" });
+  const [newUser, setNewUser] = useState({ username: "", email: "", password: "", first_name: "", last_name: "", role: "student", subject: "" });
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const sidebarWidthClass = sidebarCollapsed ? "w-[240px] lg:w-[84px]" : "w-[240px]";
   const mainMarginClass = sidebarCollapsed ? "lg:ml-[84px]" : "lg:ml-[240px]";
+  const dashboardPath = isExaminer ? "/examiner-dashboard" : "/admin";
+  const livePath = isExaminer ? "/examiner/live" : "/admin/live";
+  const usersPath = isExaminer ? "/examiner/users" : "/admin/users";
+  const createExamPath = isExaminer ? "/examiner/create-exam" : "/admin/create-exam";
 
   const loadUsers = async () => {
     try {
@@ -37,6 +42,10 @@ export default function AdminUsers({ user, onLogout }) {
   useEffect(() => { loadUsers(); }, []);
 
   const handleEdit = (u) => {
+    if (isExaminer) {
+      setError("Access Denied");
+      return;
+    }
     setEditingId(u.id);
     setEditData({
       username: u.username,
@@ -44,10 +53,15 @@ export default function AdminUsers({ user, onLogout }) {
       first_name: u.first_name || "",
       last_name: u.last_name || "",
       role: u.role || "student",
+      subject: u.subject || "",
     });
   };
 
   const handleSave = async () => {
+    if (isExaminer) {
+      setError("Access Denied");
+      return;
+    }
     try {
       await updateUser(editingId, editData);
       setEditingId(null);
@@ -58,6 +72,10 @@ export default function AdminUsers({ user, onLogout }) {
   };
 
   const handleDelete = async (id) => {
+    if (isExaminer) {
+      setError("Access Denied");
+      return;
+    }
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
       await deleteUser(id);
@@ -70,10 +88,14 @@ export default function AdminUsers({ user, onLogout }) {
   const handleCreate = async (e) => {
     e.preventDefault();
     setError("");
+    if (isExaminer) {
+      setError("Access Denied");
+      return;
+    }
     try {
       await registerUser(newUser);
       setShowCreate(false);
-      setNewUser({ username: "", email: "", password: "", first_name: "", last_name: "", role: "student" });
+      setNewUser({ username: "", email: "", password: "", first_name: "", last_name: "", role: "student", subject: "" });
       loadUsers();
     } catch (err) {
       setError(err.message);
@@ -108,7 +130,7 @@ export default function AdminUsers({ user, onLogout }) {
               <p className="font-display text-base font-bold text-slate-900">
                 <span className="text-[#6B2BD9]">T</span>RI<span className="text-[#6B2BD9]">N</span>ETRA
               </p>
-              <p className="text-xs text-slate-600">Admin Panel</p>
+              <p className="text-xs text-slate-600">{isExaminer ? "Examiner Panel" : "Admin Panel"}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -131,7 +153,7 @@ export default function AdminUsers({ user, onLogout }) {
 
         <nav className="flex-1 space-y-1 px-3 py-4">
           <Link
-            to="/admin"
+            to={dashboardPath}
             title="Dashboard"
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
             onClick={() => setSidebarOpen(false)}
@@ -140,7 +162,7 @@ export default function AdminUsers({ user, onLogout }) {
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>Dashboard</span>
           </Link>
           <Link
-            to="/admin/live"
+            to={livePath}
             title="Live Monitoring"
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
             onClick={() => setSidebarOpen(false)}
@@ -149,7 +171,7 @@ export default function AdminUsers({ user, onLogout }) {
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>Live Monitoring</span>
           </Link>
           <Link
-            to="/admin/users"
+            to={usersPath}
             title="User Management"
             className={`flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2.5 text-base font-medium text-slate-900 ${sidebarCollapsed ? "lg:justify-center" : ""}`}
             onClick={() => setSidebarOpen(false)}
@@ -158,7 +180,7 @@ export default function AdminUsers({ user, onLogout }) {
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>User Management</span>
           </Link>
           <Link
-            to="/admin/create-exam"
+            to={createExamPath}
             title="Create Exam"
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
             onClick={() => setSidebarOpen(false)}
@@ -166,15 +188,17 @@ export default function AdminUsers({ user, onLogout }) {
             <FilePlus size={18} />
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>Create Exam</span>
           </Link>
-          <Link
-            to="/admin/logs"
-            title="Alert Logs"
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
-            onClick={() => setSidebarOpen(false)}
-          >
-            <FileText size={18} />
-            <span className={sidebarCollapsed ? "lg:hidden" : ""}>Alert Logs</span>
-          </Link>
+          {!isExaminer && (
+            <Link
+              to="/admin/logs"
+              title="Alert Logs"
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${sidebarCollapsed ? "lg:justify-center" : ""}`}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FileText size={18} />
+              <span className={sidebarCollapsed ? "lg:hidden" : ""}>Alert Logs</span>
+            </Link>
+          )}
         </nav>
 
         <div className="border-t border-slate-200 px-3 py-4">
@@ -207,7 +231,8 @@ export default function AdminUsers({ user, onLogout }) {
           </div>
           <button
             onClick={() => setShowCreate(!showCreate)}
-            className="btn-primary text-xs"
+            disabled={isExaminer}
+            className={`btn-primary text-xs ${isExaminer ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             <UserPlus size={14} />
             <span className="hidden sm:inline">Create User</span>
@@ -222,6 +247,11 @@ export default function AdminUsers({ user, onLogout }) {
               <button onClick={() => setError("")} className="float-right text-red-600 hover:text-red-500">
                 <X size={14} />
               </button>
+            </div>
+          )}
+          {isExaminer && !error && (
+            <div className="mb-4 rounded-xl border border-amber-300/40 bg-amber-50 px-4 py-2.5 text-sm text-amber-700">
+              Access Denied: user edits, deletes, and creation are disabled for examiner accounts.
             </div>
           )}
 
@@ -242,7 +272,17 @@ export default function AdminUsers({ user, onLogout }) {
                 >
                   <option value="student">Student</option>
                   <option value="admin">Admin</option>
+                  <option value="examiner">Examiner</option>
                 </select>
+                {newUser.role === "examiner" && (
+                  <input
+                    className="input-field"
+                    placeholder="Assigned Subject"
+                    value={newUser.subject}
+                    onChange={(e) => setNewUser({ ...newUser, subject: e.target.value })}
+                    required
+                  />
+                )}
                 <div className="sm:col-span-2 lg:col-span-3 flex gap-3">
                   <button type="submit" className="btn-primary"><Save size={14} /> Create</button>
                   <button type="button" onClick={() => setShowCreate(false)} className="btn-ghost"><X size={14} /> Cancel</button>
@@ -284,7 +324,16 @@ export default function AdminUsers({ user, onLogout }) {
                       <select className="input-field text-xs" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })}>
                         <option value="student">Student</option>
                         <option value="admin">Admin</option>
+                        <option value="examiner">Examiner</option>
                       </select>
+                      {editData.role === "examiner" && (
+                        <input
+                          className="input-field text-xs"
+                          placeholder="Assigned Subject"
+                          value={editData.subject || ""}
+                          onChange={(e) => setEditData({ ...editData, subject: e.target.value })}
+                        />
+                      )}
                       <div className="flex gap-2">
                         <button onClick={handleSave} className="btn-primary text-xs flex-1"><Save size={13} /> Save</button>
                         <button onClick={() => setEditingId(null)} className="btn-ghost text-xs flex-1"><X size={13} /> Cancel</button>
@@ -303,10 +352,18 @@ export default function AdminUsers({ user, onLogout }) {
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <button onClick={() => handleEdit(u)} className="rounded-lg bg-blue-500/10 p-2 text-blue-400 hover:bg-blue-500/20 transition">
+                          <button
+                            onClick={() => handleEdit(u)}
+                            disabled={isExaminer}
+                            className={`rounded-lg bg-blue-500/10 p-2 text-blue-400 transition ${isExaminer ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-500/20"}`}
+                          >
                             <Edit3 size={13} />
                           </button>
-                          <button onClick={() => handleDelete(u.id)} className="rounded-lg bg-red-500/10 p-2 text-red-400 hover:bg-red-500/20 transition">
+                          <button
+                            onClick={() => handleDelete(u.id)}
+                            disabled={isExaminer}
+                            className={`rounded-lg bg-red-500/10 p-2 text-red-400 transition ${isExaminer ? "opacity-50 cursor-not-allowed" : "hover:bg-red-500/20"}`}
+                          >
                             <Trash2 size={13} />
                           </button>
                         </div>
@@ -315,6 +372,9 @@ export default function AdminUsers({ user, onLogout }) {
                         <span className={`badge ${u.role === "admin" ? "badge-suspicious" : "badge-active"}`}>
                           {u.role}
                         </span>
+                        {u.role === "examiner" && u.subject ? (
+                          <span className="badge badge-suspicious">{u.subject}</span>
+                        ) : null}
                         <span className={`badge ${u.is_active ? "badge-active" : "badge-disqualified"}`}>
                           {u.is_active ? "Active" : "Inactive"}
                         </span>
@@ -376,14 +436,30 @@ export default function AdminUsers({ user, onLogout }) {
                         </td>
                         <td className="px-5 py-4">
                           {editingId === u.id ? (
-                            <select className="input-field text-xs py-1.5" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })}>
-                              <option value="student">Student</option>
-                              <option value="admin">Admin</option>
-                            </select>
+                            <div className="space-y-2">
+                              <select className="input-field text-xs py-1.5" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })}>
+                                <option value="student">Student</option>
+                                <option value="admin">Admin</option>
+                                <option value="examiner">Examiner</option>
+                              </select>
+                              {editData.role === "examiner" && (
+                                <input
+                                  className="input-field text-xs py-1.5"
+                                  placeholder="Assigned Subject"
+                                  value={editData.subject || ""}
+                                  onChange={(e) => setEditData({ ...editData, subject: e.target.value })}
+                                />
+                              )}
+                            </div>
                           ) : (
-                            <span className={`badge ${u.role === "admin" ? "badge-suspicious" : "badge-active"}`}>
-                              {u.role}
-                            </span>
+                            <div className="space-y-1">
+                              <span className={`badge ${u.role === "admin" ? "badge-suspicious" : "badge-active"}`}>
+                                {u.role}
+                              </span>
+                              {u.role === "examiner" && u.subject ? (
+                                <div className="text-[10px] text-slate-500">{u.subject}</div>
+                              ) : null}
+                            </div>
                           )}
                         </td>
                         <td className="px-5 py-4">
@@ -394,19 +470,34 @@ export default function AdminUsers({ user, onLogout }) {
                         <td className="px-5 py-4 text-right">
                           {editingId === u.id ? (
                             <div className="flex items-center justify-end gap-2">
-                              <button onClick={handleSave} className="rounded-lg bg-emerald-500/15 p-2 text-emerald-400 hover:bg-emerald-500/25 transition">
+                              <button
+                                onClick={handleSave}
+                                disabled={isExaminer}
+                                className={`rounded-lg bg-emerald-500/15 p-2 text-emerald-400 transition ${isExaminer ? "opacity-50 cursor-not-allowed" : "hover:bg-emerald-500/25"}`}
+                              >
                                 <Save size={14} />
                               </button>
-                              <button onClick={() => setEditingId(null)} className="rounded-lg bg-slate-200 p-2 text-slate-600 hover:bg-slate-300 transition">
+                              <button
+                                onClick={() => setEditingId(null)}
+                                className="rounded-lg bg-slate-200 p-2 text-slate-600 hover:bg-slate-300 transition"
+                              >
                                 <X size={14} />
                               </button>
                             </div>
                           ) : (
                             <div className="flex items-center justify-end gap-2">
-                              <button onClick={() => handleEdit(u)} className="rounded-lg bg-blue-500/10 p-2 text-blue-400 hover:bg-blue-500/20 transition">
+                              <button
+                                onClick={() => handleEdit(u)}
+                                disabled={isExaminer}
+                                className={`rounded-lg bg-blue-500/10 p-2 text-blue-400 transition ${isExaminer ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-500/20"}`}
+                              >
                                 <Edit3 size={14} />
                               </button>
-                              <button onClick={() => handleDelete(u.id)} className="rounded-lg bg-red-500/10 p-2 text-red-400 hover:bg-red-500/20 transition">
+                              <button
+                                onClick={() => handleDelete(u.id)}
+                                disabled={isExaminer}
+                                className={`rounded-lg bg-red-500/10 p-2 text-red-400 transition ${isExaminer ? "opacity-50 cursor-not-allowed" : "hover:bg-red-500/20"}`}
+                              >
                                 <Trash2 size={14} />
                               </button>
                             </div>

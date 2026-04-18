@@ -56,9 +56,11 @@ export default function LoginPage({ onLogin }) {
       onLogin(userData);
 
       if (userData.role === "admin") {
-        navigate("/admin");
+        navigate("/admin-dashboard");
+      } else if (userData.role === "examiner") {
+        navigate("/examiner-dashboard");
       } else {
-        navigate("/exam-gate");
+        navigate("/exam");
       }
     } catch (err) {
       setError(err.message || "Authentication failed.");
@@ -87,9 +89,11 @@ export default function LoginPage({ onLogin }) {
       onLogin(res.user);
 
       if (res.user.role === "admin") {
-        navigate("/admin");
+        navigate("/admin-dashboard");
+      } else if (res.user.role === "examiner") {
+        navigate("/examiner-dashboard");
       } else {
-        navigate("/exam-gate");
+        navigate("/exam");
       }
     } catch (err) {
       setError(err.message || "Google Authentication failed.");

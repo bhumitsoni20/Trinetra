@@ -67,7 +67,7 @@ export async function resetPasswordAPI(email, otp, newPassword) {
 export async function registerUser(data) {
   const response = await fetch(`${API_BASE_URL}/api/register/`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   return parseJsonResponse(response);
@@ -83,20 +83,46 @@ export async function createExam(payload) {
   return parseJsonResponse(response);
 }
 
-export async function startExam(userId) {
-  const response = await fetch(`${API_BASE_URL}/api/start-exam/`, {
+export async function fetchExams() {
+  const response = await fetch(`${API_BASE_URL}/api/exams/`, { headers: authHeaders() });
+  const data = await parseJsonResponse(response);
+  return Array.isArray(data) ? data : [];
+}
+
+export async function fetchExamDetail(examId) {
+  const response = await fetch(`${API_BASE_URL}/api/exams/${examId}/`, { headers: authHeaders() });
+  return parseJsonResponse(response);
+}
+
+export async function assignExamStudents(examId, studentIds) {
+  const response = await fetch(`${API_BASE_URL}/api/exams/${examId}/assign/`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ user_id: userId }),
+    body: JSON.stringify({ students: studentIds }),
   });
   return parseJsonResponse(response);
 }
 
-export async function submitExam(sessionId, answers) {
+export async function fetchExamAttempts(examId) {
+  const response = await fetch(`${API_BASE_URL}/api/exams/${examId}/attempts/`, { headers: authHeaders() });
+  const data = await parseJsonResponse(response);
+  return Array.isArray(data) ? data : [];
+}
+
+export async function startExam(examId) {
+  const response = await fetch(`${API_BASE_URL}/api/start-exam/`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ exam_id: examId }),
+  });
+  return parseJsonResponse(response);
+}
+
+export async function submitExam(sessionId, examId, answers) {
   const response = await fetch(`${API_BASE_URL}/api/submit-exam/`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ session_id: sessionId, answers }),
+    body: JSON.stringify({ session_id: sessionId, exam_id: examId, answers }),
   });
   return parseJsonResponse(response);
 }

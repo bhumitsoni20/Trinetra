@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Clock, Send, AlertTriangle, XCircle, ChevronLeft, ChevronRight, CameraOff, Monitor, ShieldCheck, Activity } from "lucide-react";
 import { startExam, submitExam, reportViolation, postDetectionFrame, uploadFrame, getWebRTCOffer, postWebRTCAnswer } from "../services/api";
 
@@ -13,6 +13,7 @@ const ICE_SERVERS = [
 
 export default function ExamRoom({ user, onLogout }) {
   const navigate = useNavigate();
+  const { examId } = useParams();
   
   // Custom Media References
   const videoRef = useRef(null);
@@ -22,6 +23,8 @@ export default function ExamRoom({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [sessionId, setSessionId] = useState(null);
   const [questions, setQuestions] = useState([]);
+  const [examTitle, setExamTitle] = useState("");
+  const [totalMarks, setTotalMarks] = useState(0);
   const [answers, setAnswers] = useState({});
   const [currentQ, setCurrentQ] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(3600);
@@ -30,6 +33,7 @@ export default function ExamRoom({ user, onLogout }) {
   const [warningMessage, setWarningMessage] = useState("");
   const [showResult, setShowResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [examLoadError, setExamLoadError] = useState("");
   
   // Camera & Streaming State
   const [cameraActive, setCameraActive] = useState(false);
@@ -82,6 +86,9 @@ export default function ExamRoom({ user, onLogout }) {
       if (pc) { try { pc.close(); } catch(e) {} }
 
       pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+      pc.oniceconnectionstatechange = () => {
+        console.log("Student ICE state:", pc.iceConnectionState);
+      };
 
       // Add local camera tracks so admin receives video
       const stream = videoRef.current?.srcObject;
@@ -127,10 +134,15 @@ export default function ExamRoom({ user, onLogout }) {
     let cancelled = false;
     const init = async () => {
       try {
-        const data = await startExam(user.id);
+        if (!examId) {
+          throw new Error("Exam ID missing.");
+        }
+        const data = await startExam(examId);
         if (cancelled) return;
         setSessionId(data.session_id);
         setQuestions(data.questions || []);
+        setExamTitle(data.exam_title || "");
+        setTotalMarks(data.total_marks || 0);
         setTimeRemaining(data.time_remaining || 3600);
         setTabSwitchCount(data.tab_switch_count || 0);
         if (data.status === "disqualified") {
@@ -142,6 +154,7 @@ export default function ExamRoom({ user, onLogout }) {
           }
         }
       } catch (err) {
+        setExamLoadError(err.message || "Unable to load exam.");
         console.error("Failed to start exam:", err);
       } finally {
         if (!cancelled) setLoading(false);
@@ -167,7 +180,7 @@ export default function ExamRoom({ user, onLogout }) {
       document.removeEventListener("copy", blockClipboard);
       document.removeEventListener("paste", blockClipboard);
     };
-  }, [user.id]);
+  }, [examId]);
 
   // Timer countdown
   useEffect(() => {
@@ -351,7 +364,7 @@ export default function ExamRoom({ user, onLogout }) {
     if (submitting) return;
     setSubmitting(true);
     try {
-      const result = await submitExam(sessionId, answers);
+      const result = await submitExam(sessionId, examId, answers);
       setShowResult(result);
       setExamStatus("completed");
     } catch (err) {
@@ -359,7 +372,7 @@ export default function ExamRoom({ user, onLogout }) {
     } finally {
       setSubmitting(false);
     }
-  }, [sessionId, answers, submitting]);
+  }, [sessionId, examId, answers, submitting]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -392,22 +405,25 @@ export default function ExamRoom({ user, onLogout }) {
   if (examStatus === "disqualified") {
     return (
       <div className="disqualified-overlay">
-        <div className="animate-fadeInUp text-center max-w-md px-6">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-red-200 bg-red-50 sm:mb-6 sm:h-20 sm:w-20 shadow-[0_12px_30px_rgba(239,68,68,0.15)]">
-            <XCircle size={32} className="text-red-600 sm:hidden" />
-            <XCircle size={40} className="hidden text-red-600 sm:block" />
+        <div className="result-card result-card--danger animate-fadeInUp">
+          <div className="result-icon result-icon--danger">
+            <XCircle size={28} className="sm:hidden" />
+            <XCircle size={34} className="hidden sm:block" />
           </div>
           <h1 className="font-display text-2xl font-bold text-red-600 sm:text-3xl">Disqualified</h1>
-          <p className="mt-2 text-sm text-slate-600 leading-relaxed sm:mt-3 sm:text-base">
+          <p className="mt-3 text-sm text-slate-600 leading-relaxed sm:text-base">
             You have been disqualified from this exam due to repeated tab switching violations.
+          </p>
+          <p className="mt-2 text-xs text-slate-500 sm:text-sm">
             This incident has been recorded.
           </p>
-          <p className="mt-4 text-xs text-slate-500 sm:text-sm font-mono">
-            VIOLATIONS: {tabSwitchCount}/3
-          </p>
+          <div className="result-meta">
+            <span>Violations</span>
+            <strong>{tabSwitchCount}/3</strong>
+          </div>
           <button
             onClick={() => { onLogout(); navigate("/"); }}
-            className="btn-danger mt-6 w-full sm:mt-8"
+            className="btn-danger mt-6 w-full"
           >
             Acknowledge & Exit
           </button>
@@ -420,21 +436,26 @@ export default function ExamRoom({ user, onLogout }) {
   if (examStatus === "completed" && showResult) {
     return (
       <div className="disqualified-overlay">
-        <div className="animate-fadeInUp text-center max-w-md px-6">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 sm:mb-6 sm:h-20 sm:w-20 shadow-[0_12px_30px_rgba(16,185,129,0.15)]">
-            <Send size={28} className="text-emerald-600 sm:hidden" />
-            <Send size={36} className="hidden text-emerald-600 sm:block" />
+        <div className="result-card result-card--success animate-fadeInUp">
+          <div className="result-icon result-icon--success">
+            <Send size={26} className="sm:hidden" />
+            <Send size={32} className="hidden sm:block" />
           </div>
           <h1 className="font-display text-2xl font-bold text-emerald-600 sm:text-3xl">Exam Submitted</h1>
-          <div className="mt-4 glass-card rounded-2xl border border-emerald-200/60 bg-emerald-50/60 p-4 sm:mt-6 sm:p-6">
+          <div className="result-score">
             <div className="text-4xl font-bold text-slate-900 sm:text-5xl">{showResult.percentage}%</div>
             <p className="mt-2 text-sm font-mono text-emerald-700/80">
               {showResult.score} / {showResult.total} correct answers
             </p>
           </div>
+          {showResult.email_sent === false ? (
+            <p className="mt-3 text-xs text-amber-600">Result email could not be sent. Please contact support.</p>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">Result email sent to your registered address.</p>
+          )}
           <button
             onClick={() => { onLogout(); navigate("/"); }}
-            className="btn-primary mt-6 w-full sm:mt-8"
+            className="btn-primary mt-6 w-full"
           >
             Return to Home
           </button>
@@ -445,6 +466,31 @@ export default function ExamRoom({ user, onLogout }) {
 
   // Active Exam Loop
   const q = questions[currentQ];
+  const questionText = q?.question_text || q?.question || "";
+  const questionOptions = Array.isArray(q?.options) ? q.options : [];
+
+  if (examLoadError) {
+    return (
+      <div className="disqualified-overlay">
+        <div className="result-card animate-fadeInUp">
+          <div className="result-icon result-icon--danger">
+            <CameraOff size={26} className="sm:hidden" />
+            <CameraOff size={32} className="hidden sm:block" />
+          </div>
+          <h1 className="font-display text-2xl font-bold text-red-600 sm:text-3xl">Access Denied</h1>
+          <p className="mt-3 text-sm text-slate-600 leading-relaxed sm:text-base">
+            {examLoadError}
+          </p>
+          <button
+            onClick={() => { onLogout(); navigate("/exam"); }}
+            className="btn-danger mt-6 w-full"
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`exam-fullscreen relative overflow-hidden bg-white text-slate-900 transition-colors duration-500 select-none ${warningMessage ? "bg-red-50" : ""}`}>
@@ -479,6 +525,9 @@ export default function ExamRoom({ user, onLogout }) {
               <Monitor size={14} className="animate-pulse text-cyan-600" />
               <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 sm:text-xs">Screen Monitoring Active</span>
             </div>
+            {examTitle ? (
+              <span className="hidden text-xs text-slate-500 sm:inline">| {examTitle}</span>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-4 pr-24 sm:gap-6 sm:pr-44">
@@ -496,6 +545,11 @@ export default function ExamRoom({ user, onLogout }) {
             <span className="text-[10px] font-mono tracking-wider text-slate-500 sm:text-xs">
               {currentQ + 1} / {questions.length}
             </span>
+            {totalMarks ? (
+              <span className="text-[10px] font-mono tracking-wider text-slate-400 sm:text-xs">
+                Marks: {totalMarks}
+              </span>
+            ) : null}
           </div>
         </header>
 
@@ -513,12 +567,12 @@ export default function ExamRoom({ user, onLogout }) {
 
                 {/* Question Text */}
                 <h2 className="font-display text-lg font-medium leading-relaxed text-slate-900 sm:text-xl md:text-2xl">
-                  {q.question}
+                  {questionText}
                 </h2>
 
                 {/* Options List */}
                 <div className="mt-6 space-y-3 sm:mt-8 sm:space-y-4">
-                  {q.options.map((option, idx) => {
+                  {questionOptions.map((option, idx) => {
                     const isSelected = answers[q.id] === idx;
                     return (
                       <button

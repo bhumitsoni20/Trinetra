@@ -26,14 +26,22 @@ class Profile(models.Model):
 
 
 class Exam(models.Model):
+    subject = models.CharField(max_length=255, blank=True, default="")
     title = models.CharField(max_length=255)
     questions = models.JSONField(default=list, blank=True)
+    duration = models.PositiveIntegerField(default=60, help_text="Duration in minutes")
+    total_marks = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="created_exams",
+    )
+    allowed_students = models.ManyToManyField(
+        User,
+        related_name="allowed_exams",
+        blank=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -42,6 +50,35 @@ class Exam(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Question(models.Model):
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="question_items")
+    question_text = models.TextField()
+    options = models.JSONField(default=list)
+    correct_answer = models.PositiveSmallIntegerField(default=0)
+    marks = models.PositiveSmallIntegerField(default=1)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        return f"{self.exam.title} - Q{self.order + 1}"
+
+
+class ExamAttempt(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exam_attempts")
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="attempts")
+    answers = models.JSONField(default=dict)
+    score = models.PositiveIntegerField(default=0)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-submitted_at"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.exam.title} ({self.score})"
 
 
 class ExamSession(models.Model):

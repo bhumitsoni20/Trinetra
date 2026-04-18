@@ -38,3 +38,19 @@ class IsAdminOrExaminer(permissions.BasePermission):
             return user.profile.role in {"admin", "examiner"}
         except (Profile.DoesNotExist, OperationalError):
             return AdminAccount.objects.filter(email=user.email).exists()
+
+
+class IsStudentUser(permissions.BasePermission):
+    """
+    Allows access only to users with a student role.
+    """
+
+    def has_permission(self, request, view):
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            return False
+
+        try:
+            return user.profile.role == "student"
+        except (Profile.DoesNotExist, OperationalError):
+            return False

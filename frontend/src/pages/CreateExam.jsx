@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Monitor,
@@ -16,7 +16,7 @@ import {
   View
 } from "lucide-react";
 import Logo from "../assets/TRINETRA.png";
-import { createExam } from "../services/api";
+import { createExam, fetchExamAttempts, fetchExams, fetchUsers } from "../services/api";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
 
@@ -24,6 +24,7 @@ const buildQuestion = () => ({
   question: "",
   options: ["", "", "", ""],
   correct: 0,
+  marks: 1,
 });
 
 function QuestionCard({
@@ -32,6 +33,7 @@ function QuestionCard({
   onQuestionChange,
   onOptionChange,
   onCorrectChange,
+  onMarksChange,
   onDelete,
   canDelete,
 }) {
@@ -102,24 +104,108 @@ function QuestionCard({
           ))}
         </div>
       </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_120px]">
+        <div>
+          <label className="text-sm font-medium text-slate-600">Marks</label>
+          <p className="text-xs text-slate-500">Score awarded for a correct answer.</p>
+        </div>
+        <input
+          type="number"
+          min="1"
+          className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-base text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          value={data.marks}
+          onChange={(e) => onMarksChange(index, e.target.value)}
+        />
+      </div>
     </article>
   );
 }
 
 export default function CreateExam({ user, onLogout }) {
   const navigate = useNavigate();
+  const isExaminer = user?.role === "examiner";
+  const isAdmin = user?.role === "admin";
   const [title, setTitle] = useState("");
+  const [subject, setSubject] = useState(() => user?.subject || "");
+  const [duration, setDuration] = useState(60);
   const [questions, setQuestions] = useState([buildQuestion()]);
+  const [students, setStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [exams, setExams] = useState([]);
+  const [selectedResultExamId, setSelectedResultExamId] = useState("");
+  const [attempts, setAttempts] = useState([]);
+  const [loadingAttempts, setLoadingAttempts] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const dashboardPath = isExaminer ? "/examiner-dashboard" : "/admin";
+  const livePath = isExaminer ? "/examiner/live" : "/admin/live";
+  const usersPath = isExaminer ? "/examiner/users" : "/admin/users";
+  const createExamPath = isExaminer ? "/examiner/create-exam" : "/admin/create-exam";
 
   const sidebarWidthClass = sidebarCollapsed ? "w-[240px] lg:w-[84px]" : "w-[240px]";
   const mainMarginClass = sidebarCollapsed ? "lg:ml-[84px]" : "lg:ml-[240px]";
+  const totalMarks = useMemo(() => questions.reduce((sum, q) => sum + (Number(q.marks) || 0), 0), [questions]);
 
-  if (!user || user.role !== "admin") {
+  useEffect(() => {
+    let mounted = true;
+    const loadStudents = async () => {
+      setLoadingStudents(true);
+      try {
+        const data = await fetchUsers();
+        if (!mounted) return;
+        const onlyStudents = data.filter((u) => u.role === "student");
+        setStudents(onlyStudents);
+      } catch (err) {
+        if (mounted) setError(err.message || "Failed to load students.");
+      } finally {
+        if (mounted) setLoadingStudents(false);
+      }
+    };
+    loadStudents();
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadExams = async () => {
+      try {
+        const data = await fetchExams();
+        if (mounted) setExams(data);
+      } catch (err) {
+        if (mounted) setError(err.message || "Failed to load exams.");
+      }
+    };
+    loadExams();
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadAttempts = async () => {
+      if (!selectedResultExamId) {
+        setAttempts([]);
+        return;
+      }
+      setLoadingAttempts(true);
+      try {
+        const data = await fetchExamAttempts(selectedResultExamId);
+        if (mounted) setAttempts(data);
+      } catch (err) {
+        if (mounted) setError(err.message || "Failed to load results.");
+      } finally {
+        if (mounted) setLoadingAttempts(false);
+      }
+    };
+    loadAttempts();
+    return () => { mounted = false; };
+  }, [selectedResultExamId]);
+
+  if (!user || (!isAdmin && !isExaminer)) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -158,6 +244,13 @@ export default function CreateExam({ user, onLogout }) {
     );
   };
 
+  const updateMarks = (qIndex, value) => {
+    const nextValue = Number(value);
+    setQuestions((prev) =>
+      prev.map((question, idx) => (idx === qIndex ? { ...question, marks: nextValue } : question))
+    );
+  };
+
   const addQuestion = () => {
     setQuestions((prev) => [...prev, buildQuestion()]);
   };
@@ -167,7 +260,9 @@ export default function CreateExam({ user, onLogout }) {
   };
 
   const validateExam = () => {
+    if (!subject.trim()) return "Subject is required.";
     if (!title.trim()) return "Exam title is required.";
+    if (!duration || Number(duration) <= 0) return "Duration must be a positive number.";
     if (questions.length === 0) return "Please add at least one question.";
 
     for (let i = 0; i < questions.length; i += 1) {
@@ -180,12 +275,19 @@ export default function CreateExam({ user, onLogout }) {
           return `Question ${i + 1} option ${OPTION_LABELS[j]} is required.`;
         }
       }
+      if (!question.marks || Number(question.marks) <= 0) {
+        return `Question ${i + 1} must have valid marks.`;
+      }
     }
 
     return "";
   };
 
   const handleSave = async () => {
+    if (isExaminer && !user?.subject) {
+      setError("Access Denied");
+      return;
+    }
     const validationError = validateExam();
     setError("");
     setSuccess("");
@@ -199,22 +301,32 @@ export default function CreateExam({ user, onLogout }) {
     let saved = false;
     try {
       const payload = {
+        subject: subject.trim(),
         title: title.trim(),
+        duration: Number(duration),
+        allowed_students: selectedStudents,
         questions: questions.map((question) => ({
-          question: question.question.trim(),
+          question_text: question.question.trim(),
           options: question.options.map((opt) => opt.trim()),
-          correct: question.correct,
+          correct_answer: question.correct,
+          marks: Number(question.marks) || 1,
         })),
       };
       await createExam(payload);
       setSuccess("Exam saved successfully.");
+      try {
+        const updated = await fetchExams();
+        setExams(updated);
+      } catch (err) {
+        // ignore refresh errors
+      }
       saved = true;
     } catch (err) {
       setError(err.message || "Failed to save exam.");
     } finally {
       setSaving(false);
       if (saved) {
-        navigate("/admin");
+        navigate(isExaminer ? "/examiner-dashboard" : "/admin-dashboard");
       }
     }
   };
@@ -244,7 +356,7 @@ export default function CreateExam({ user, onLogout }) {
               <p className="font-display text-base font-bold text-slate-900">
                 <span className="text-[#6B2BD9]">T</span>RI<span className="text-[#6B2BD9]">N</span>ETRA
               </p>
-              <p className="text-xs text-slate-600">Admin Panel</p>
+              <p className="text-xs text-slate-600">{isExaminer ? "Examiner Panel" : "Admin Panel"}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -267,7 +379,7 @@ export default function CreateExam({ user, onLogout }) {
 
         <nav className="flex-1 space-y-1 px-3 py-4">
           <Link
-            to="/admin"
+            to={dashboardPath}
             title="Dashboard"
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${
               sidebarCollapsed ? "lg:justify-center" : ""
@@ -278,7 +390,7 @@ export default function CreateExam({ user, onLogout }) {
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>Dashboard</span>
           </Link>
           <Link
-            to="/admin/live"
+            to={livePath}
             title="Live Monitoring"
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${
               sidebarCollapsed ? "lg:justify-center" : ""
@@ -289,7 +401,7 @@ export default function CreateExam({ user, onLogout }) {
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>Live Monitoring</span>
           </Link>
           <Link
-            to="/admin/users"
+            to={usersPath}
             title="User Management"
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${
               sidebarCollapsed ? "lg:justify-center" : ""
@@ -300,7 +412,7 @@ export default function CreateExam({ user, onLogout }) {
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>User Management</span>
           </Link>
           <Link
-            to="/admin/create-exam"
+            to={createExamPath}
             title="Create Exam"
             className={`flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2.5 text-base font-medium text-slate-900 ${
               sidebarCollapsed ? "lg:justify-center" : ""
@@ -310,17 +422,19 @@ export default function CreateExam({ user, onLogout }) {
             <FilePlus size={18} className="text-blue-600" />
             <span className={sidebarCollapsed ? "lg:hidden" : ""}>Create Exam</span>
           </Link>
-          <Link
-            to="/admin/logs"
-            title="Alert Logs"
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${
-              sidebarCollapsed ? "lg:justify-center" : ""
-            }`}
-            onClick={() => setSidebarOpen(false)}
-          >
-            <FileText size={18} />
-            <span className={sidebarCollapsed ? "lg:hidden" : ""}>Alert Logs</span>
-          </Link>
+          {isAdmin && (
+            <Link
+              to="/admin/logs"
+              title="Alert Logs"
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition ${
+                sidebarCollapsed ? "lg:justify-center" : ""
+              }`}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FileText size={18} />
+              <span className={sidebarCollapsed ? "lg:hidden" : ""}>Alert Logs</span>
+            </Link>
+          )}
         </nav>
 
         <div className="border-t border-slate-200 px-3 py-4">
@@ -378,6 +492,22 @@ export default function CreateExam({ user, onLogout }) {
               </span>
             </div>
             <div className="mt-4">
+              <label className="text-sm font-medium text-slate-600">Subject</label>
+              <input
+                type="text"
+                className={`mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 ${
+                  isExaminer ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+                placeholder="e.g. Data Structures"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                disabled={isExaminer}
+              />
+              {isExaminer && !user?.subject ? (
+                <p className="mt-2 text-xs text-rose-600">Access Denied: No subject assigned to your account.</p>
+              ) : null}
+            </div>
+            <div className="mt-4">
               <label className="text-sm font-medium text-slate-600">Exam Title</label>
               <input
                 type="text"
@@ -386,6 +516,23 @@ export default function CreateExam({ user, onLogout }) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_200px]">
+              <div>
+                <label className="text-sm font-medium text-slate-600">Duration (minutes)</label>
+                <p className="text-xs text-slate-500">Time limit for students to complete the exam.</p>
+              </div>
+              <input
+                type="number"
+                min="1"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+              />
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 font-medium">Total Marks: {totalMarks}</span>
+              <span className="text-xs text-slate-500">Calculated from question marks</span>
             </div>
           </div>
 
@@ -410,10 +557,104 @@ export default function CreateExam({ user, onLogout }) {
                 onQuestionChange={updateQuestion}
                 onOptionChange={updateOption}
                 onCorrectChange={updateCorrect}
+                onMarksChange={updateMarks}
                 onDelete={removeQuestion}
                 canDelete={questions.length > 1}
               />
             ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-base font-semibold text-slate-900">Assign Students</h3>
+                <p className="text-xs text-slate-500">Only selected students can access this exam.</p>
+              </div>
+              <span className="text-xs text-slate-500">Selected: {selectedStudents.length}</span>
+            </div>
+
+            {loadingStudents ? (
+              <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+                Loading students...
+              </div>
+            ) : students.length === 0 ? (
+              <p className="mt-4 text-sm text-slate-600">No students available for assignment.</p>
+            ) : (
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {students.map((student) => {
+                  const isSelected = selectedStudents.includes(student.id);
+                  return (
+                    <label
+                      key={student.id}
+                      className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-sm transition ${
+                        isSelected ? "border-cyan-300 bg-cyan-50" : "border-slate-200 bg-slate-50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {
+                          setSelectedStudents((prev) =>
+                            prev.includes(student.id)
+                              ? prev.filter((id) => id !== student.id)
+                              : [...prev, student.id]
+                          );
+                        }}
+                        className="h-4 w-4 accent-cyan-600"
+                      />
+                      <span className="text-slate-700">{student.username}</span>
+                      <span className="ml-auto text-xs text-slate-400">{student.email}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="font-display text-base font-semibold text-slate-900">Exam Results</h3>
+                <p className="text-xs text-slate-500">Review scores for completed exams.</p>
+              </div>
+              <select
+                className="input-field w-full sm:w-64"
+                value={selectedResultExamId}
+                onChange={(e) => setSelectedResultExamId(e.target.value)}
+              >
+                <option value="">Select an exam</option>
+                {exams.map((exam) => (
+                  <option key={exam.id} value={exam.id}>
+                    {exam.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {loadingAttempts ? (
+              <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+                Loading results...
+              </div>
+            ) : attempts.length === 0 ? (
+              <p className="mt-4 text-sm text-slate-600">No attempts to show.</p>
+            ) : (
+              <div className="mt-4 space-y-2">
+                {attempts.map((attempt) => (
+                  <div key={attempt.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+                    <div>
+                      <p className="font-medium text-slate-900">{attempt.user_name}</p>
+                      <p className="text-xs text-slate-500">{attempt.user}</p>
+                    </div>
+                    <div className="text-slate-700">Score: {attempt.score}</div>
+                    <div className="text-xs text-slate-500">
+                      {new Date(attempt.submitted_at).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
