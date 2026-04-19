@@ -153,7 +153,6 @@ VITE_SOCKET_URL=http://127.0.0.1:8000
 - No webcam images or video files are saved.
 - Only metadata is stored: user_id, event, risk_score, timestamp.
 
-## Hackathon Demo Flow
 
 1. Start backend and frontend.
 2. Open the dashboard and click Start Monitoring.
