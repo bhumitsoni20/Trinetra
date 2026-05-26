@@ -4,6 +4,14 @@ async function parseJsonResponse(response) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = data.detail || data.message || JSON.stringify(data) || "Request failed";
+    
+    if (message === "Authentication credentials were not provided." || message === "Invalid credentials." || response.status === 401) {
+      localStorage.removeItem("trinetra_user");
+      if (window.location.pathname !== "/login" && window.location.pathname !== "/signup") {
+        window.location.href = "/login";
+      }
+    }
+    
     throw new Error(message);
   }
   return data;

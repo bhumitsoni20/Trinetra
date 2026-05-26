@@ -106,3 +106,6 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "trinetra660@gmail.com")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Trinetra <trinetra660@gmail.com>")
 MAIN_ADMIN_EMAILS = ["trinetra660@gmail.com"]
+
+# Firebase Auth Popup Fix
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'

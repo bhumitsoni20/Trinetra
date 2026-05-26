@@ -543,6 +543,10 @@ if True:
                     "tab_switch_count": active.tab_switch_count,
                 })
 
+            completed = ExamSession.objects.filter(user=user, exam=exam, status__in=["completed", "disqualified"]).first()
+            if completed:
+                return Response({"detail": f"You have already {completed.status} this exam."}, status=status.HTTP_403_FORBIDDEN)
+
             time_remaining = max(int(exam.duration), 1) * 60
             session = ExamSession.objects.create(user=user, time_remaining=time_remaining, exam=exam)
             return Response({
